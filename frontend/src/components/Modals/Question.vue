@@ -44,7 +44,7 @@
 							:label="__('Type')"
 							v-model="question.type"
 							type="select"
-							:options="['Choices', 'User Input', 'Open Ended']"
+							:options="['Choices', 'User Input', 'Open Ended', 'Reading Block']"
 							class="pb-2"
 							:required="true"
 						/>
@@ -60,6 +60,12 @@
 						class="text-base font-semibold text-ink-gray-9 mb-5 mt-5"
 					>
 						{{ __('Possibilities') }}
+					</div>
+					<div
+						v-else-if="question.type == 'Reading Block'"
+						class="text-base font-semibold text-ink-gray-9 mb-5 mt-5"
+					>
+						{{ __('Sub Questions') }}
 					</div>
 					<div
 						v-if="question.type == 'Choices'"
@@ -92,6 +98,106 @@
 								v-model="question[`possibility_${n}`]"
 								:required="n == 1 ? true : false"
 							/>
+						</div>
+					</div>
+					<div
+						v-else-if="question.type == 'Reading Block'"
+						class="space-y-4 py-2"
+					>
+						<div class="bg-surface-gray-1 border rounded-lg p-3">
+							<div class="text-sm text-ink-gray-6">
+								{{ __('Reading Block: Add reading passage above, then create sub-questions below') }}
+							</div>
+						</div>
+						
+						<!-- Sub Questions Management -->
+						<div class="space-y-3">
+							<div class="flex items-center justify-between">
+								<span class="text-sm font-medium text-ink-gray-8">{{ __('Sub Questions') }}</span>
+								<Button
+									size="sm"
+									variant="outline"
+									@click="addSubQuestion"
+								>
+									{{ __('+ Add Question') }}
+								</Button>
+							</div>
+							
+							<div v-if="question.sub_questions.length === 0" class="text-center py-6 text-ink-gray-5 text-sm">
+								{{ __('No sub-questions yet') }}
+							</div>
+							
+							<div v-for="(subQ, index) in question.sub_questions" :key="index" class="border rounded-lg p-3 space-y-3">
+								<div class="flex items-center justify-between">
+									<span class="text-sm font-medium">{{ __('Question') }} {{ index + 1 }}</span>
+									<Button
+										size="sm"
+										variant="ghost"
+										@click="removeSubQuestion(index)"
+										class="text-red-600"
+									>
+										{{ __('Remove') }}
+									</Button>
+								</div>
+								
+								<FormControl
+									v-model="subQ.question"
+									:label="__('Question Text')"
+									:required="true"
+								/>
+								
+								<div class="grid grid-cols-2 gap-3">
+									<div class="space-y-1">
+										<FormControl
+											v-model="subQ.option_1"
+											:label="__('Option 1')"
+											:required="true"
+										/>
+										<FormControl
+											v-model="subQ.is_correct_1"
+											:label="__('Correct')"
+											type="checkbox"
+										/>
+									</div>
+									<div class="space-y-1">
+										<FormControl
+											v-model="subQ.option_2"
+											:label="__('Option 2')"
+											:required="true"
+										/>
+										<FormControl
+											v-model="subQ.is_correct_2"
+											:label="__('Correct')"
+											type="checkbox"
+										/>
+									</div>
+								</div>
+								
+								<div class="grid grid-cols-2 gap-3">
+									<div class="space-y-1">
+										<FormControl
+											v-model="subQ.option_3"
+											:label="__('Option 3')"
+										/>
+										<FormControl
+											v-model="subQ.is_correct_3"
+											:label="__('Correct')"
+											type="checkbox"
+										/>
+									</div>
+									<div class="space-y-1">
+										<FormControl
+											v-model="subQ.option_4"
+											:label="__('Option 4')"
+										/>
+										<FormControl
+											v-model="subQ.is_correct_4"
+											:label="__('Correct')"
+											type="checkbox"
+										/>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -145,6 +251,7 @@ const question = reactive({
 	question: '',
 	type: 'Choices',
 	marks: 1,
+	sub_questions: [],
 })
 
 const populateFields = () => {
@@ -159,6 +266,25 @@ const populateFields = () => {
 }
 
 populateFields()
+
+// Sub-questions management for Reading Block
+const addSubQuestion = () => {
+	question.sub_questions.push({
+		question: '',
+		option_1: '',
+		option_2: '',
+		option_3: '',
+		option_4: '',
+		is_correct_1: false,
+		is_correct_2: false,
+		is_correct_3: false,
+		is_correct_4: false,
+	})
+}
+
+const removeSubQuestion = (index) => {
+	question.sub_questions.splice(index, 1)
+}
 
 const props = defineProps({
 	title: {

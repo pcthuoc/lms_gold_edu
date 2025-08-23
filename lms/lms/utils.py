@@ -1430,6 +1430,18 @@ def get_question_details(question):
 		fields.append(f"explanation_{i}")
 
 	question_details = frappe.db.get_value("LMS Question", question, fields, as_dict=1)
+	
+	# Load sub_questions for Reading Block type
+	if question_details and question_details.get("type") == "Reading Block":
+		sub_questions = frappe.get_all(
+			"Reading Sub Question",
+			filters={"parent": question},
+			fields=["question", "option_1", "option_2", "option_3", "option_4", 
+					"is_correct_1", "is_correct_2", "is_correct_3", "is_correct_4"],
+			order_by="idx"
+		)
+		question_details["sub_questions"] = sub_questions
+	
 	return question_details
 
 

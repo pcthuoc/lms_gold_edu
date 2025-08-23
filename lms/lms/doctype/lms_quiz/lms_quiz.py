@@ -154,7 +154,20 @@ def process_results(results, quiz_details):
 		result["question"] = question_details.question_detail
 		result["marks_out_of"] = question_details.marks
 
-		if question_details.type != "Open Ended":
+		if question_details.type == "Reading Block":
+			# Handle Reading Block scoring with ratio
+			if "reading_block_results" in result:
+				rb_results = result["reading_block_results"]
+				score_ratio = rb_results.get("score_ratio", 0)
+				marks = question_details.marks * score_ratio
+				result["marks"] = marks
+				result["is_correct"] = rb_results.get("total_correct", 0) == rb_results.get("total_questions", 1)
+				score += marks
+			else:
+				# Fallback for old format
+				result["marks"] = 0
+				result["is_correct"] = False
+		elif question_details.type != "Open Ended":
 			if len(result["is_correct"]) > 0:
 				correct = result["is_correct"][0]
 				for point in result["is_correct"]:
@@ -273,6 +286,8 @@ def check_answer(question, type, answers):
 	answers = json.loads(answers)
 	if type == "Choices":
 		return check_choice_answers(question, answers)
+	elif type == "Reading Block":
+		return check_reading_block_answers(question, answers)
 	else:
 		return check_input_answers(question, answers[0])
 
@@ -309,3 +324,67 @@ def check_input_answers(question, answer):
 			return 1
 
 	return 0
+
+
+def check_reading_block_answers(question, answers):
+	"""
+	Check answers for Reading Block type questions
+	answers format: [
+		{"sub_question_index": 0, "selected_option": 1, "answer_text": "A"},
+		{"sub_question_index": 1, "selected_option": 2, "answer_text": "B"}
+	]
+	Returns: {
+		"sub_results": [...],
+		"total_correct": [số câu trả lời đúng thực tế],
+		"total_questions": [tổng số câu hỏi con thực tế],
+		"score_ratio": [tỷ lệ đúng thực tế: correct/total]
+	}
+	"""
+	# Get sub-questions for this Reading Block
+	sub_questions = frappe.get_all(
+		"Reading Sub Question",
+		filters={"parent": question},
+		fields=["name", "question", "option_1", "option_2", "option_3", "option_4", 
+				"is_correct_1", "is_correct_2", "is_correct_3", "is_correct_4"],
+		order_by="idx"
+	)
+	
+	results = []
+	correct_count = 0
+	
+	# Create answer lookup by sub-question index
+	answer_lookup = {}
+	for answer in answers:
+		sub_idx = answer["sub_question_index"]
+		answer_lookup[sub_idx] = answer["selected_option"]
+	
+	# Check each sub-question
+	for idx, sub_q in enumerate(sub_questions):
+		if idx in answer_lookup:
+			selected_option = answer_lookup[idx]
+			is_correct = sub_q.get(f"is_correct_{selected_option}", 0)
+			is_correct_bool = 1 if is_correct else 0
+			if is_correct_bool:
+				correct_count += 1
+			results.append({
+				"sub_question_index": idx,
+				"is_correct": is_correct_bool,
+				"selected_option": selected_option
+			})
+		else:
+			# No answer provided for this sub-question
+			results.append({
+				"sub_question_index": idx,
+				"is_correct": 0,
+				"selected_option": None
+			})
+	
+	total_questions = len(sub_questions)
+	score_ratio = correct_count / total_questions if total_questions > 0 else 0
+	
+	return {
+		"sub_results": results,
+		"total_correct": correct_count,
+		"total_questions": total_questions,
+		"score_ratio": score_ratio
+	}

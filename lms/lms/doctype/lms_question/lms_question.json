@@ -37,7 +37,9 @@
   "possibility_3",
   "column_break_wpjr",
   "possibility_2",
-  "possibility_4"
+  "possibility_4",
+  "section_break_hkfd",
+  "sub_questions"
  ],
  "fields": [
   {
@@ -51,7 +53,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type",
-   "options": "Choices\nUser Input\nOpen Ended"
+   "options": "Choices\nUser Input\nOpen Ended\nReading Block"
   },
   {
    "depends_on": "eval:doc.type == \"Choices\";",
@@ -191,12 +193,24 @@
    "fieldname": "possibility_4",
    "fieldtype": "Small Text",
    "label": "Possible Answer 4"
+  },
+  {
+   "description": "\u0110o\u1ea1n v\u0103n ho\u1eb7c audio c\u1ee7a b\u00e0i \u0111\u1ecdc hi\u1ec3u",
+   "fieldname": "sub_questions",
+   "fieldtype": "Table",
+   "label": "Sub Questions",
+   "mandatory_depends_on": "eval:doc.type == \"Reading Block\"",
+   "options": "Reading Sub Question"
+  },
+  {
+   "fieldname": "section_break_hkfd",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
  "make_attachments_public": 1,
- "modified": "2024-10-07 09:41:17.862774",
+ "modified": "2025-08-23 14:44:24.926228",
  "modified_by": "Administrator",
  "module": "LMS",
  "name": "LMS Question",
@@ -240,6 +254,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

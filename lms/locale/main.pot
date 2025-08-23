@@ -7388,3 +7388,8 @@ msgstr ""
 msgid "{} Published"
 msgstr ""
 
+#. Option for the 'Type' (Select) field in DocType 'LMS Question'
+#: lms/lms/doctype/lms_question/lms_question.json
+msgid "Reading Block"
+msgstr ""
+
