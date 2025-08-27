@@ -64,6 +64,7 @@
 		</div>
 
 		<div v-if="activeQuestion == 0">
+			
 			<div class="border text-center p-20 rounded-md">
 				<div class="font-semibold text-lg text-ink-gray-9">
 					{{ quiz.data.title }}
@@ -100,7 +101,9 @@
 				</div>
 			</div>
 		</div>
-		<div v-else-if="!quizSubmission.data">
+		
+		<!-- Sequential Mode -->
+		<div v-else-if="!quizSubmission.data && isSequentialMode">
 			<div v-for="(question, qtidx) in questions">
 				<div
 					v-if="qtidx == activeQuestion - 1 && questionDetails.data"
@@ -124,7 +127,10 @@
 						class="text-ink-gray-9 font-semibold mt-2 leading-5"
 						v-html="questionDetails.data.question"
 					></div>
-					<div v-if="questionDetails.data.type == 'Choices'" v-for="index in 4">
+					
+					<!-- Choices Question -->
+					<div v-if="questionDetails.data.type == 'Choices'">
+						<div v-for="index in 4" :key="index">
 						<label
 							v-if="questionDetails.data[`option_${index}`]"
 							class="flex items-center bg-surface-gray-3 rounded-md p-3 mt-4 w-full cursor-pointer focus:border-blue-600"
@@ -145,24 +151,22 @@
 								@change="markAnswer(index)"
 							/>
 							<div
-								v-else-if="quiz.data.show_answers"
-								v-for="(answer, idx) in showAnswers"
+								v-else-if="quiz.data.show_answers && showAnswers.length"
+								class="w-3.5 h-3.5 flex items-center justify-center"
 							>
-								<div v-if="index - 1 == idx">
-									<CheckCircle
-										v-if="answer == 1"
-										class="w-4 h-4 text-ink-green-2"
-									/>
-									<MinusCircle
-										v-else-if="answer == 2"
-										class="w-4 h-4 text-ink-green-2"
-									/>
-									<XCircle
-										v-else-if="answer == 0"
-										class="w-4 h-4 text-ink-red-3"
-									/>
-									<MinusCircle v-else class="w-4 h-4" />
-								</div>
+								<CheckCircle
+									v-if="showAnswers[index - 1] == 1"
+									class="w-4 h-4 text-ink-green-2"
+								/>
+								<MinusCircle
+									v-else-if="showAnswers[index - 1] == 2"
+									class="w-4 h-4 text-ink-green-2"
+								/>
+								<XCircle
+									v-else-if="showAnswers[index - 1] == 0"
+									class="w-4 h-4 text-ink-red-3"
+								/>
+								<div v-else class="w-4 h-4"></div>
 							</div>
 							<span
 								class="ml-2"
@@ -178,6 +182,22 @@
 							{{ questionDetails.data[`explanation_${index}`] }}
 						</div>
 					</div>
+					
+					<!-- Hiển thị trạng thái câu hỏi sau 4 đáp án - Logic đúng theo quy định 0,1,2 -->
+					<div v-if="showAnswers.length && questionDetails.data.type == 'Choices'" class="mt-4 flex justify-center">
+						<Badge v-if="showAnswers.some(answer => answer === 1) && !showAnswers.some(answer => answer === 0)" label="Correct" theme="green">
+							<template #prefix>
+								<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+							</template>
+						</Badge>
+						<Badge v-else label="Incorrect" theme="red">
+							<template #prefix>
+								<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+							</template>
+						</Badge>
+					</div>
+					</div>
+					
 					<div v-else-if="questionDetails.data.type == 'User Input'">
 						<FormControl
 							v-model="possibleAnswer"
@@ -186,27 +206,54 @@
 							class="my-2"
 						/>
 						<div v-if="showAnswers.length">
-							<Badge v-if="showAnswers[0]" :label="__('Correct')" theme="green">
-								<template #prefix>
-									<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
-								</template>
-							</Badge>
-							<Badge v-else theme="red" :label="__('Incorrect')">
-								<template #prefix>
-									<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
-								</template>
-							</Badge>
+							<!-- Logic cho mode hiển thị đáp án: showAnswers[0] là object -->
+							<div v-if="quiz.data.show_answers && typeof showAnswers[0] === 'object'">
+								<Badge v-if="showAnswers[0].is_correct" label="Correct" theme="green">
+									<template #prefix>
+										<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+									</template>
+								</Badge>
+								<Badge v-else theme="red" label="Incorrect">
+									<template #prefix>
+										<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+									</template>
+								</Badge>
+								
+								<!-- Hiển thị đáp án đúng -->
+								<div v-if="showAnswers[0].correct_answers && showAnswers[0].correct_answers.length" class="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+									<div class="text-sm font-medium text-green-800 mb-2">{{ __('Correct Answer(s):') }}</div>
+									<div class="text-sm text-green-700">
+										<div v-for="(answer, idx) in showAnswers[0].correct_answers" :key="idx" class="mb-1">
+											• {{ answer }}
+										</div>
+									</div>
+								</div>
+							</div>
+							
+							<!-- Logic cho mode không hiển thị đáp án: showAnswers[0] là boolean/number -->
+							<div v-else>
+								<Badge v-if="showAnswers[0]" label="Correct" theme="green">
+									<template #prefix>
+										<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+									</template>
+								</Badge>
+								<Badge v-else theme="red" label="Incorrect">
+									<template #prefix>
+										<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+									</template>
+								</Badge>
+							</div>
 						</div>
 					</div>
 					<div v-else-if="questionDetails.data.type == 'Reading Block'">
 						<!-- Reading Passage -->
-						<div class="bg-surface-gray-1 border rounded-lg p-4 mb-6">
+						<!-- <div class="bg-surface-gray-1 border rounded-lg p-4 mb-6">
 							<div class="text-sm font-medium text-ink-gray-7 mb-2">
 								{{ __('Reading Passage') }}
 							</div>
 							<div class="prose prose-sm max-w-none" v-html="questionDetails.data.question"></div>
 						</div>
-						
+						 -->
 						<!-- Sub Questions -->
 						<div class="space-y-6" v-if="questionDetails.data.sub_questions && questionDetails.data.sub_questions.length > 0">
 							<div v-for="(subQ, subIdx) in questionDetails.data.sub_questions" :key="subIdx" class="border rounded-lg p-4">
@@ -214,9 +261,7 @@
 									<div class="text-sm font-medium text-ink-gray-8">
 										{{ __('Question') }} {{ subIdx + 1 }}
 									</div>
-									<div class="text-xs text-ink-gray-6">
-										1 {{ __('mark') }}
-									</div>
+									<!-- Bỏ hiển thị điểm vì đã có ở câu chính -->
 								</div>
 								
 								<div class="text-ink-gray-9 font-medium mb-3">{{ subQ.question }}</div>
@@ -225,15 +270,7 @@
 								<div class="space-y-2">
 									<!-- Option 1 -->
 									<label v-if="subQ.option_1" class="flex items-center bg-surface-gray-3 rounded-md p-3 cursor-pointer hover:bg-surface-gray-4 transition-colors">
-										<div v-if="!showSubAnswers[subIdx]" class="w-3.5 h-3.5">
-											<input
-												type="radio"
-												:name="`sub_question_${subIdx}`"
-												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
-												@change="markSubAnswer(subIdx, 1)"
-											/>
-										</div>
-										<div v-else class="w-3.5 h-3.5 flex items-center justify-center">
+										<div v-if="showSubAnswers[subIdx] && (showSubAnswers[subIdx][0] === 1 || showSubAnswers[subIdx][0] === 0 || showSubAnswers[subIdx][0] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
 											<CheckCircle
 												v-if="showSubAnswers[subIdx][0] == 1"
 												class="w-4 h-4 text-ink-green-2"
@@ -248,20 +285,20 @@
 											/>
 											<div v-else class="w-4 h-4"></div>
 										</div>
+										<div v-else class="w-3.5 h-3.5">
+											<input
+												type="radio"
+												:name="`sub_question_${subIdx}`"
+												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
+												@change="markSubAnswer(subIdx, 1)"
+											/>
+										</div>
 										<span class="ml-3">{{ subQ.option_1 }}</span>
 									</label>
 									
 									<!-- Option 2 -->
 									<label v-if="subQ.option_2" class="flex items-center bg-surface-gray-3 rounded-md p-3 cursor-pointer hover:bg-surface-gray-4 transition-colors">
-										<div v-if="!showSubAnswers[subIdx]" class="w-3.5 h-3.5">
-											<input
-												type="radio"
-												:name="`sub_question_${subIdx}`"
-												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
-												@change="markSubAnswer(subIdx, 2)"
-											/>
-										</div>
-										<div v-else class="w-3.5 h-3.5 flex items-center justify-center">
+										<div v-if="showSubAnswers[subIdx] && (showSubAnswers[subIdx][1] === 1 || showSubAnswers[subIdx][1] === 0 || showSubAnswers[subIdx][1] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
 											<CheckCircle
 												v-if="showSubAnswers[subIdx][1] == 1"
 												class="w-4 h-4 text-ink-green-2"
@@ -276,20 +313,20 @@
 											/>
 											<div v-else class="w-4 h-4"></div>
 										</div>
+										<div v-else class="w-3.5 h-3.5">
+											<input
+												type="radio"
+												:name="`sub_question_${subIdx}`"
+												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
+												@change="markSubAnswer(subIdx, 2)"
+											/>
+										</div>
 										<span class="ml-3">{{ subQ.option_2 }}</span>
 									</label>
 									
 									<!-- Option 3 -->
 									<label v-if="subQ.option_3" class="flex items-center bg-surface-gray-3 rounded-md p-3 cursor-pointer hover:bg-surface-gray-4 transition-colors">
-										<div v-if="!showSubAnswers[subIdx]" class="w-3.5 h-3.5">
-											<input
-												type="radio"
-												:name="`sub_question_${subIdx}`"
-												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
-												@change="markSubAnswer(subIdx, 3)"
-											/>
-										</div>
-										<div v-else class="w-3.5 h-3.5 flex items-center justify-center">
+										<div v-if="showSubAnswers[subIdx] && (showSubAnswers[subIdx][2] === 1 || showSubAnswers[subIdx][2] === 0 || showSubAnswers[subIdx][2] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
 											<CheckCircle
 												v-if="showSubAnswers[subIdx][2] == 1"
 												class="w-4 h-4 text-ink-green-2"
@@ -304,20 +341,20 @@
 											/>
 											<div v-else class="w-4 h-4"></div>
 										</div>
+										<div v-else class="w-3.5 h-3.5">
+											<input
+												type="radio"
+												:name="`sub_question_${subIdx}`"
+												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
+												@change="markSubAnswer(subIdx, 3)"
+											/>
+										</div>
 										<span class="ml-3">{{ subQ.option_3 }}</span>
 									</label>
 									
 									<!-- Option 4 -->
 									<label v-if="subQ.option_4" class="flex items-center bg-surface-gray-3 rounded-md p-3 cursor-pointer hover:bg-surface-gray-4 transition-colors">
-										<div v-if="!showSubAnswers[subIdx]" class="w-3.5 h-3.5">
-											<input
-												type="radio"
-												:name="`sub_question_${subIdx}`"
-												class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
-												@change="markSubAnswer(subIdx, 4)"
-											/>
-										</div>
-										<div v-else class="w-3.5 h-3.5 flex items-center justify-center">
+										<div v-if="showSubAnswers[subIdx] && (showSubAnswers[subIdx][3] === 1 || showSubAnswers[subIdx][3] === 0 || showSubAnswers[subIdx][3] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
 											<CheckCircle
 												v-if="showSubAnswers[subIdx][3] == 1"
 												class="w-4 h-4 text-ink-green-2"
@@ -332,6 +369,14 @@
 											/>
 											<div v-else class="w-4 h-4"></div>
 										</div>
+										<div v-else class="w-3.5 h-3.5">
+											<input
+												type="radio"
+												:name="`sub_question_${subIdx}`"
+											class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
+											@change="markSubAnswer(subIdx, 4)"
+										/>
+										</div>
 										<span class="ml-3">{{ subQ.option_4 }}</span>
 									</label>
 								</div>
@@ -341,6 +386,37 @@
 						<!-- No sub-questions message -->
 						<div v-else class="text-center py-8 text-ink-gray-5">
 							{{ __('No sub-questions found for this Reading Block') }}
+						</div>
+						
+						<!-- Hiển thị trạng thái Reading Block sau tất cả sub-questions -->
+						<div v-if="currentQuestionResult && questionDetails.data.type == 'Reading Block'" class="mt-6 flex justify-center">
+							<Badge 
+								v-if="currentQuestionResult === 'correct'" 
+								:label="__('All Correct')" 
+								theme="green"
+							>
+								<template #prefix>
+									<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+								</template>
+							</Badge>
+							<Badge 
+								v-else-if="currentQuestionResult === 'partial'" 
+								:label="__('Partially Correct')" 
+								theme="yellow"
+							>
+								<template #prefix>
+									<MinusCircle class="w-4 h-4 text-ink-yellow-2 mr-1" />
+								</template>
+							</Badge>
+							<Badge 
+								v-else-if="currentQuestionResult === 'incorrect'" 
+								:label="__('All Incorrect')" 
+								theme="red"
+							>
+								<template #prefix>
+									<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+								</template>
+							</Badge>
 						</div>
 					</div>
 					<div v-else>
@@ -365,9 +441,11 @@
 						<Button
 							v-if="
 								quiz.data.show_answers &&
-								!showAnswers.length &&
 								questionDetails.data.type != 'Open Ended' &&
-								questionDetails.data.type != 'Reading Block'
+								(
+									(questionDetails.data.type != 'Reading Block' && !showAnswers.length) ||
+									(questionDetails.data.type == 'Reading Block' && Object.keys(showSubAnswers).length === 0)
+								)
 							"
 							@click="checkAnswer()"
 						>
@@ -375,11 +453,15 @@
 								{{ __('Check') }}
 							</span>
 						</Button>
+						<!-- Nút Check cho mode không hiển thị đáp án -->
 						<Button
 							v-else-if="
-								quiz.data.show_answers &&
-								questionDetails.data.type == 'Reading Block' &&
-								Object.keys(showSubAnswers).length === 0
+								!quiz.data.show_answers &&
+								questionDetails.data.type != 'Open Ended' &&
+								(
+									(questionDetails.data.type != 'Reading Block' && showAnswers.length === 0) ||
+									(questionDetails.data.type == 'Reading Block' && Object.keys(showSubAnswers).length === 0)
+								)
 							"
 							@click="checkAnswer()"
 						>
@@ -387,15 +469,26 @@
 								{{ __('Check') }}
 							</span>
 						</Button>
+						<!-- Nút Next cho cả hai mode -->
 						<Button
-							v-else-if="activeQuestion != questions.length"
+							v-else-if="
+								activeQuestion < questions.length &&
+								(
+									(questionDetails.data.type != 'Reading Block' && showAnswers.length > 0) ||
+									(questionDetails.data.type == 'Reading Block' && Object.keys(showSubAnswers).length > 0)
+								)
+							"
 							@click="nextQuestion()"
 						>
 							<span>
 								{{ __('Next') }}
 							</span>
 						</Button>
-						<Button v-else @click="submitQuiz()">
+						<!-- Nút Submit chỉ khi là câu cuối -->
+						<Button 
+							v-else-if="activeQuestion >= questions.length"
+							@click="submitQuiz()"
+						>
 							<span>
 								{{ __('Submit') }}
 							</span>
@@ -404,6 +497,253 @@
 				</div>
 			</div>
 		</div>
+		
+		<!-- All Questions Mode -->
+		<div v-else-if="isAllQuestionsMode" class="space-y-6">
+			<div class="border rounded-md p-5">
+				<div class="text-lg font-semibold text-ink-gray-9 mb-4">
+					{{ quiz.data.title }} - {{ __('All Questions') }}
+				</div>
+				
+				<div class="space-y-8">
+					<div v-for="(question, qtidx) in questions" :key="qtidx" class="border rounded-lg shadow-sm bg-surface-white p-6">
+						<div class="flex justify-between items-start mb-4">
+							<div class="flex items-center gap-3">
+								<div class="text-sm text-ink-gray-6">
+									<span class="font-semibold text-ink-gray-8">
+										{{ __('Question {0}').format(qtidx + 1) }}
+									</span>
+								</div>
+								<!-- Status badge for each question -->
+								<div v-if="hasQuestionResult(qtidx)" class="flex items-center gap-1">
+									<span v-if="getQuestionStatus(qtidx) === 'correct'" 
+										class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+										</svg>
+										Correct
+									</span>
+									<span v-else-if="getQuestionStatus(qtidx) === 'incorrect'" 
+										class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+											<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+										</svg>
+										Incorrect
+									</span>
+								</div>
+							</div>
+							<div class="text-sm font-medium text-ink-blue-3 bg-surface-blue-1 px-2 py-1 rounded">
+								{{ question.marks }} {{ question.marks == 1 ? __('Mark') : __('Marks') }}
+							</div>
+						</div>
+						
+						<div class="text-ink-gray-9 font-medium mb-4 leading-relaxed" v-html="question.question_detail || question.question"></div>
+						
+						<!-- Loading or Error State -->
+						<div v-if="!allQuestionsDetails[qtidx]" class="text-center py-4 text-ink-gray-5">
+							{{ __('Loading question details...') }}
+						</div>
+						
+						<!-- Question Content -->
+						<div v-else-if="allQuestionsDetails[qtidx]">
+							<!-- Choices Question -->
+							<div v-if="allQuestionsDetails[qtidx].type == 'Choices'" class="space-y-3">
+								<div v-for="index in 4" :key="index">
+									<label
+										v-if="allQuestionsDetails[qtidx][`option_${index}`]"
+										class="flex items-center bg-surface-gray-2 hover:bg-surface-gray-3 rounded-lg p-4 cursor-pointer transition-colors border border-transparent hover:border-ink-gray-4"
+									>
+										<div v-if="!hasShownAnswers" class="w-4 h-4">
+											<input
+												v-if="!allQuestionsDetails[qtidx].multiple"
+												type="radio"
+												:name="`question_${qtidx}`"
+												class="w-4 h-4 text-ink-blue-3 focus:ring-ink-blue-2"
+												@change="markAllQuestionsAnswer(qtidx, index)"
+												:disabled="quizSubmission.data"
+											/>
+											<input
+												v-else
+												type="checkbox"
+												:name="`question_${qtidx}_${index}`"
+												class="w-4 h-4 text-ink-blue-3 rounded focus:ring-ink-blue-2"
+												@change="markAllQuestionsAnswer(qtidx, index)"
+												:disabled="quizSubmission.data"
+											/>
+										</div>
+										<div v-else class="w-4 h-4 flex items-center justify-center">
+											<CheckCircle
+												v-if="allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 1"
+												class="w-4 h-4 text-ink-green-2"
+											/>
+											<MinusCircle
+												v-else-if="allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 2"
+												class="w-4 h-4 text-ink-green-2"
+											/>
+											<XCircle
+												v-else-if="allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 0"
+												class="w-4 h-4 text-ink-red-3"
+											/>
+											<div v-else class="w-4 h-4"></div>
+										</div>
+										<span class="ml-3 text-ink-gray-9" v-html="allQuestionsDetails[qtidx][`option_${index}`]"></span>
+									</label>
+									<div
+										v-if="allQuestionsDetails[qtidx][`explanation_${index}`] && hasShownAnswers"
+										class="mt-2 text-xs text-ink-gray-6 ml-7"
+									>
+										{{ allQuestionsDetails[qtidx][`explanation_${index}`] }}
+									</div>
+								</div>
+							</div>
+							
+							<div v-else-if="allQuestionsDetails[qtidx].type == 'User Input'" class="space-y-3">
+								<FormControl
+									:value="allQuestionsAnswers[qtidx]?.possibleAnswer || ''"
+									type="textarea"
+									:placeholder="__('Type your answer here...')"
+									:disabled="hasShownAnswers"
+									class="w-full"
+									@input="(event) => {
+										if (!allQuestionsAnswers[qtidx]) {
+											allQuestionsAnswers[qtidx] = { 
+												selectedOptions: [0, 0, 0, 0],
+												possibleAnswer: '',
+												selectedSubOptions: {}
+											}
+										}
+										const value = event.target ? event.target.value : event
+										allQuestionsAnswers[qtidx].possibleAnswer = value
+									}"
+								/>
+								<div v-if="hasShownAnswers && allShowAnswers[qtidx] !== undefined">
+									<Badge v-if="allShowAnswers[qtidx] === 1 || (Array.isArray(allShowAnswers[qtidx]) && allShowAnswers[qtidx][0] === 1)" label="Correct" theme="green">
+										<template #prefix>
+											<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+										</template>
+									</Badge>
+									<Badge v-else theme="red" label="Incorrect">
+										<template #prefix>
+											<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+										</template>
+									</Badge>
+									
+									<!-- Show correct answers for User Input -->
+									<div v-if="allQuestionsDetails[qtidx] && hasShownAnswers" class="mt-3 p-3 bg-surface-green-1 border border-ink-green-3 rounded-md">
+										<div class="text-sm font-medium text-ink-green-3 mb-2">{{ __('Possible Correct Answers:') }}</div>
+										<div class="space-y-1">
+											<!-- Try correct_answers from response first -->
+											<div v-if="allQuestionsDetails[qtidx].correct_answers && allQuestionsDetails[qtidx].correct_answers.length > 0">
+												<div v-for="answer in allQuestionsDetails[qtidx].correct_answers" :key="answer" class="text-sm text-ink-green-2">
+													• {{ answer }}
+												</div>
+											</div>
+											<!-- Fallback to possibility fields -->
+											<div v-else>
+												<div v-for="num in 4" :key="num" v-if="allQuestionsDetails[qtidx][`possibility_${num}`]" class="text-sm text-ink-green-2">
+													• {{ allQuestionsDetails[qtidx][`possibility_${num}`] }}
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							
+							<!-- Reading Block Question -->
+							<div v-else-if="allQuestionsDetails[qtidx].type == 'Reading Block'" class="space-y-6">
+								<div class="space-y-6" v-if="allQuestionsDetails[qtidx].sub_questions && allQuestionsDetails[qtidx].sub_questions.length > 0">
+									<div v-for="(subQ, subIdx) in allQuestionsDetails[qtidx].sub_questions" :key="subIdx" class="border rounded-lg p-4">
+										<div class="flex justify-between items-start mb-3">
+											<div class="text-sm font-medium text-ink-gray-8">
+												{{ __('Question') }} {{ subIdx + 1 }}
+											</div>
+											<!-- Bỏ hiển thị điểm vì đã có ở câu chính -->
+										</div>
+										
+										<div class="text-ink-gray-9 font-medium mb-3">{{ subQ.question }}</div>
+										
+										<!-- Sub Question Options -->
+										<div class="space-y-2">
+											<div v-for="optIdx in 4" :key="optIdx">
+												<label v-if="subQ[`option_${optIdx}`]" class="flex items-center bg-surface-gray-3 rounded-md p-3 cursor-pointer hover:bg-surface-gray-4 transition-colors">
+													<div v-if="allShowSubAnswers[qtidx] && allShowSubAnswers[qtidx][subIdx] && (allShowSubAnswers[qtidx][subIdx][optIdx-1] === 1 || allShowSubAnswers[qtidx][subIdx][optIdx-1] === 0 || allShowSubAnswers[qtidx][subIdx][optIdx-1] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
+														<CheckCircle
+															v-if="allShowSubAnswers[qtidx][subIdx][optIdx-1] == 1"
+															class="w-4 h-4 text-ink-green-2"
+														/>
+														<MinusCircle
+															v-else-if="allShowSubAnswers[qtidx][subIdx][optIdx-1] == 2"
+															class="w-4 h-4 text-ink-green-2"
+														/>
+														<XCircle
+															v-else-if="allShowSubAnswers[qtidx][subIdx][optIdx-1] == 0"
+															class="w-4 h-4 text-ink-red-3"
+														/>
+														<div v-else class="w-4 h-4"></div>
+													</div>
+													<div v-else class="w-3.5 h-3.5">
+														<input
+															type="radio"
+															:name="`all_sub_question_${qtidx}_${subIdx}`"
+															class="w-3.5 h-3.5 text-ink-gray-9 focus:ring-outline-gray-modals"
+															@change="markAllSubAnswer(qtidx, subIdx, optIdx)"
+															:disabled="quizSubmission.data"
+														/>
+													</div>
+													<span class="ml-3">{{ subQ[`option_${optIdx}`] }}</span>
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div v-else>
+									<div class="text-sm">{{ __('No sub-questions found for this Reading Block') }}</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Submit Button for All Questions Mode -->
+				<div class="mt-6 flex justify-center">
+					<Button 
+						v-if="!hasShownAnswers && !quizSubmission.data" 
+						@click="submitAllQuestions()" 
+						:disabled="quizSubmission.data"
+					>
+						<span>
+							{{ __('Submit All Answers') }}
+						</span>
+					</Button>
+					<div v-else-if="quizSubmission.data" class="text-center">
+						<Button @click="resetQuiz()" variant="outline">
+							<span>
+								{{ __('Try Again') }}
+							</span>
+						</Button>
+					</div>
+				</div>
+				
+				<!-- Score Display when quiz is submitted - moved to bottom -->
+				<div v-if="quizSubmission.data" class="mt-6 p-4 bg-surface-blue-1 border border-ink-blue-3 rounded-lg">
+					<div class="text-center">
+						<div class="text-lg font-semibold text-ink-blue-3 mb-2">
+							{{ __('Quiz Results') }}
+						</div>
+						<div class="text-2xl font-bold text-ink-gray-9 mb-1">
+							{{ quizSubmission.data.percentage }}% 
+						</div>
+						<div class="text-sm text-ink-gray-6">
+							{{ __('You got {0} out of {1} correct').format(quizSubmission.data.score, quizSubmission.data.score_out_of) }}
+						</div>
+						<div class="text-xs text-ink-gray-5 mt-2">
+							{{ quizSubmission.data.score >= quiz.data.passing_percentage ? __('Passed') : __('Failed') }}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
 		<div v-else class="border rounded-md p-20 text-center space-y-2">
 			<div class="text-lg font-semibold text-ink-gray-9">
 				{{ __('Quiz Summary') }}
@@ -498,10 +838,151 @@ const possibleAnswer = ref(null)
 const timer = ref(0)
 let timerInterval = null
 
+// All Questions mode data
+const allQuestionsAnswers = reactive({})
+const allQuestionsDetails = reactive({})
+const allShowAnswers = reactive({})
+const allShowSubAnswers = reactive({})
+
+// Mode detection
+const isSequentialMode = computed(() => {
+	// Ưu tiên quiz.data.display_mode từ database
+	if (quiz.data && quiz.data.display_mode) {
+		return quiz.data.display_mode === 'Sequential'
+	}
+	// Nếu không có, dùng displayMode prop
+	if (props.displayMode) {
+		return props.displayMode === 'sequential'
+	}
+	// Default là sequential
+	return true
+})
+
+const isAllQuestionsMode = computed(() => {
+	// Ưu tiên quiz.data.display_mode từ database
+	if (quiz.data && quiz.data.display_mode) {
+		return quiz.data.display_mode === 'All Questions'
+	}
+	// Nếu không có, dùng displayMode prop
+	if (props.displayMode) {
+		return props.displayMode === 'all_questions'
+	}
+	// Default là false
+	return false
+})
+
+const hasShownAnswers = computed(() => {
+	if (isAllQuestionsMode.value) {
+		// For All Questions mode, check if any answers have been shown
+		const hasShowAnswers = Object.keys(allShowAnswers).length > 0
+		const hasShowSubAnswers = Object.keys(allShowSubAnswers).length > 0
+		return hasShowAnswers || hasShowSubAnswers
+	} else {
+		// For Sequential mode, use existing logic
+		return quiz.data?.show_answers && (showAnswers.length > 0 || Object.keys(showSubAnswers).length > 0)
+	}
+})
+
+// Helper methods for question status
+const hasQuestionResult = (questionIndex) => {
+	if (isAllQuestionsMode.value) {
+		return allShowAnswers[questionIndex] || allShowSubAnswers[questionIndex]
+	} else {
+		// For Sequential mode - check current question only
+		return questionIndex === currentQuestion.value && (showAnswers.length > 0 || Object.keys(showSubAnswers).length > 0)
+	}
+}
+
+// Check if user has answered a question (regardless of showing results)
+const hasUserAnswered = (questionIndex) => {
+	if (!allQuestionsAnswers[questionIndex]) return false
+	
+	const answer = allQuestionsAnswers[questionIndex]
+	const questionType = allQuestionsDetails[questionIndex]?.type
+	
+	if (questionType === 'Choices') {
+		return answer.selectedOptions.some(option => option === 1)
+	} else if (questionType === 'User Input') {
+		return answer.possibleAnswer && answer.possibleAnswer.trim() !== ''
+	} else if (questionType === 'Reading Block') {
+		return Object.keys(answer.selectedSubOptions).length > 0
+	}
+	
+	return false
+}
+
+const getQuestionStatus = (questionIndex) => {
+	if (!hasQuestionResult(questionIndex)) return null
+	
+	if (isAllQuestionsMode.value) {
+		const questionDetails = allQuestionsDetails[questionIndex]
+		if (!questionDetails) return null
+		
+		if (questionDetails.type === 'Choices') {
+			const answers = allShowAnswers[questionIndex]
+			if (!answers) return null
+			
+			// Check if any answer is correct (value 1)
+			const hasCorrect = answers.some(val => val === 1)
+			const hasWrong = answers.some(val => val === 0)
+			
+			if (hasCorrect && !hasWrong) return 'correct'
+			return 'incorrect'
+			
+		} else if (questionDetails.type === 'Reading Block') {
+			const subAnswers = allShowSubAnswers[questionIndex]
+			if (!subAnswers) return null
+			
+			// Check all sub-questions
+			let allCorrect = true
+			let hasAnswered = false
+			
+			Object.keys(subAnswers).forEach(subIdx => {
+				const subResults = subAnswers[subIdx]
+				if (subResults) {
+					hasAnswered = true
+					const hasCorrectInSub = subResults.some(val => val === 1)
+					const hasWrongInSub = subResults.some(val => val === 0)
+					
+					if (hasWrongInSub || !hasCorrectInSub) {
+						allCorrect = false
+					}
+				}
+			})
+			
+			if (!hasAnswered) return null
+			return allCorrect ? 'correct' : 'incorrect'
+			
+		} else if (questionDetails.type === 'User Input') {
+			const answers = allShowAnswers[questionIndex]
+			if (!answers) return null
+			
+			// For input questions, check if marked correct
+			// Backend may return simple value (1/0) or array [1] or [0]
+			if (Array.isArray(answers)) {
+				return answers[0] === 1 ? 'correct' : 'incorrect'
+			} else {
+				return answers === 1 ? 'correct' : 'incorrect'
+			}
+		}
+	} else {
+		// Sequential mode logic - reuse existing logic
+		if (currentQuestionResult.value) {
+			return currentQuestionResult.value.is_correct ? 'correct' : 'incorrect'
+		}
+	}
+	
+	return null
+}
+
 const props = defineProps({
 	quizName: {
 		type: String,
 		required: true,
+	},
+	displayMode: {
+		type: String,
+		default: 'sequential', // 'sequential' or 'all_questions'
 	},
 	inVideo: {
 		type: Boolean,
@@ -575,6 +1056,59 @@ const timerProgress = computed(() => {
 	return (timer.value / (quiz.data.duration * 60)) * 100
 })
 
+// Computed property để kiểm tra câu hỏi hiện tại đúng hay sai
+const currentQuestionResult = computed(() => {
+	if (!quiz.data.show_answers) return null
+	
+	if (questionDetails.data.type === 'Reading Block') {
+		// Kiểm tra Reading Block result
+		if (Object.keys(showSubAnswers).length === 0) return null
+		
+		let totalSubQuestions = 0
+		let correctSubQuestions = 0
+		let hasAnyAnswer = false
+		
+		Object.keys(showSubAnswers).forEach(subIdx => {
+			const subAnswers = showSubAnswers[subIdx]
+			if (subAnswers && subAnswers.some(answer => answer !== null && answer !== undefined)) {
+				hasAnyAnswer = true
+				totalSubQuestions++
+				// Kiểm tra xem sub-question này có đúng không (có option nào = 1)
+				if (subAnswers.some(answer => answer === 1)) {
+					correctSubQuestions++
+				}
+			}
+		})
+		
+		if (!hasAnyAnswer) return null
+		
+		if (correctSubQuestions === totalSubQuestions) {
+			return 'correct' // Tất cả sub-questions đúng
+		} else if (correctSubQuestions > 0) {
+			return 'partial' // Một phần đúng
+		} else {
+			return 'incorrect' // Tất cả sai
+		}
+	} else {
+		// Logic cho Choices questions
+		if (!showAnswers.length) return null
+		
+		// Kiểm tra xem có câu trả lời nào đúng không
+		const hasCorrectAnswer = showAnswers.some(answer => answer === 1)
+		const hasWrongAnswer = showAnswers.some(answer => answer === 0)
+		
+		if (hasCorrectAnswer && !hasWrongAnswer) {
+			return 'correct' // Toàn đúng
+		} else if (hasCorrectAnswer && hasWrongAnswer) {
+			return 'partial' // Đúng một phần (cho multiple choice)
+		} else if (hasWrongAnswer) {
+			return 'incorrect' // Sai
+		} else {
+			return 'unanswered' // Chưa trả lời
+		}
+	}
+})
+
 const shuffleArray = (array) => {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1))
@@ -627,9 +1161,11 @@ watch(
 const quizSubmission = createResource({
 	url: 'lms.lms.doctype.lms_quiz.lms_quiz.quiz_summary',
 	makeParams(values) {
+		const results = localStorage.getItem(quiz.data.title)
+		
 		return {
 			quiz: quiz.data.name,
-			results: localStorage.getItem(quiz.data.title),
+			results: results,
 		}
 	},
 })
@@ -715,9 +1251,28 @@ const getAnswers = () => {
 
 const checkAnswer = () => {
 	let answers = getAnswers()
+	const type = questionDetails.data.type
+	
 	if (!answers.length) {
 		toast.warning(__('Please select an option'))
 		return
+	}
+	
+	// Validation đặc biệt cho Reading Block - bắt buộc trả lời TẤT CẢ sub-questions
+	if (type === 'Reading Block') {
+		const totalSubQuestions = questionDetails.data.sub_questions?.length || 0
+		const answeredSubQuestions = new Set()
+		
+		// Đếm số sub-questions đã được trả lời
+		answers.forEach(answer => {
+			answeredSubQuestions.add(answer.sub_question_index)
+		})
+		
+		if (answeredSubQuestions.size < totalSubQuestions) {
+			const unansweredCount = totalSubQuestions - answeredSubQuestions.size
+			toast.warning(__('Please answer all {0} sub-questions. You have {1} unanswered questions remaining.').format(totalSubQuestions, unansweredCount))
+			return
+		}
 	}
 
 	createResource({
@@ -731,6 +1286,8 @@ const checkAnswer = () => {
 		onSuccess(data) {
 			let type = questionDetails.data.type
 			if (type == 'Choices') {
+				// Reset showAnswers trước khi xử lý kết quả mới
+				showAnswers.length = 0
 				selectedOptions.forEach((option, index) => {
 					if (option) {
 						showAnswers[index] = option && data[index]
@@ -741,51 +1298,43 @@ const checkAnswer = () => {
 					}
 				})
 			} else if (type == 'Reading Block') {
-				// Handle Reading Block results - data now has structure with sub_results
-				if (data.sub_results) {
-					data.sub_results.forEach(result => {
-						const subIdx = result.sub_question_index
+				// Handle Reading Block results - convert to simple format like Choices
+				if (data && data.sub_results) {
+					// Clear existing sub answers
+					Object.keys(showSubAnswers).forEach(key => delete showSubAnswers[key])
+					
+					// Get sub-questions to know correct answers
+					const subQuestions = questionDetails.data.sub_questions || []
+					
+					// Process each sub-question result
+					data.sub_results.forEach((subResult) => {
+						const subIdx = subResult.sub_question_index
+						
 						if (!showSubAnswers[subIdx]) {
 							showSubAnswers[subIdx] = [undefined, undefined, undefined, undefined]
 						}
-						// Mark all options for this sub-question
-						for (let optIdx = 0; optIdx < 4; optIdx++) {
-							const optionKey = `is_correct_${optIdx + 1}`
-							const subQ = questionDetails.data.sub_questions[subIdx]
-							
-							if (result.selected_option === optIdx + 1) {
-								// This was the selected option
-								showSubAnswers[subIdx][optIdx] = result.is_correct ? 1 : 0
-							} else if (subQ[optionKey]) {
-								// This is a correct option that wasn't selected
-								showSubAnswers[subIdx][optIdx] = 2
-							} else {
-								// This is an incorrect option that wasn't selected
-								showSubAnswers[subIdx][optIdx] = undefined
-							}
-						}
-					})
-				} else {
-					// Fallback for old format
-					data.forEach(result => {
-						const subIdx = result.sub_question_index
-						if (!showSubAnswers[subIdx]) {
-							showSubAnswers[subIdx] = [undefined, undefined, undefined, undefined]
-						}
-						// Mark all options for this sub-question
-						for (let optIdx = 0; optIdx < 4; optIdx++) {
-							const optionKey = `is_correct_${optIdx + 1}`
-							const subQ = questionDetails.data.sub_questions[subIdx]
-							
-							if (result.selected_option === optIdx + 1) {
-								// This was the selected option
-								showSubAnswers[subIdx][optIdx] = result.is_correct ? 1 : 0
-							} else if (subQ[optionKey]) {
-								// This is a correct option that wasn't selected
-								showSubAnswers[subIdx][optIdx] = 2
-							} else {
-								// This is an incorrect option that wasn't selected
-								showSubAnswers[subIdx][optIdx] = undefined
+						
+						const subQ = subQuestions[subIdx]
+						if (subQ) {
+							// Fill answers for each option (1-4)
+							for (let optIdx = 1; optIdx <= 4; optIdx++) {
+								const arrayIdx = optIdx - 1
+								const isCorrectOption = subQ[`is_correct_${optIdx}`]
+								const userSelected = subResult.selected_option === optIdx
+								
+								if (userSelected && subResult.is_correct) {
+									// User selected this option and it's correct
+									showSubAnswers[subIdx][arrayIdx] = 1
+								} else if (userSelected && !subResult.is_correct) {
+									// User selected this option but it's wrong
+									showSubAnswers[subIdx][arrayIdx] = 0
+								} else if (!userSelected && isCorrectOption) {
+									// User didn't select but this is the correct answer
+									showSubAnswers[subIdx][arrayIdx] = 2
+								} else {
+									// Not selected and not correct
+									showSubAnswers[subIdx][arrayIdx] = undefined
+								}
 							}
 						}
 					})
@@ -794,8 +1343,11 @@ const checkAnswer = () => {
 				showAnswers.push(data)
 			}
 			addToLocalStorage()
+			// Trong mode không hiển thị đáp án, KHÔNG tự động reset ngay
+			// Để user thấy nút "Next" và tự bấm để chuyển câu
 			if (!quiz.data.show_answers) {
-				resetQuestion()
+				// Không gọi resetQuestion() ở đây nữa
+				// Sẽ gọi trong nextQuestion() thay thế
 			}
 		},
 	})
@@ -810,58 +1362,33 @@ const addToLocalStorage = () => {
 			return answer != undefined
 		}),
 	}
-
-	// For Reading Block, add the results data for scoring
-	if (questionDetails.data.type == 'Reading Block') {
-		// Process Reading Block results from showSubAnswers
-		const subResults = []
-		let totalCorrect = 0
-		let totalQuestions = 0
-
-		questionDetails.data.sub_questions.forEach((subQ, subIdx) => {
-			totalQuestions++
-			const selectedOption = selectedSubOptions[subIdx]?.findIndex(opt => opt) + 1 || null
-			const isCorrect = showSubAnswers[subIdx] && showSubAnswers[subIdx].some(answer => answer === 1)
-			
-			if (isCorrect) totalCorrect++
-			
-			subResults.push({
-				sub_question_index: subIdx,
-				is_correct: isCorrect ? 1 : 0,
-				selected_option: selectedOption
-			})
-		})
-
-		questionData.reading_block_results = {
-			sub_results: subResults,
-			total_correct: totalCorrect,
-			total_questions: totalQuestions,
-			score_ratio: totalQuestions > 0 ? totalCorrect / totalQuestions : 0
-		}
-	}
-
 	quizData ? quizData.push(questionData) : (quizData = [questionData])
 	localStorage.setItem(quiz.data.title, JSON.stringify(quizData))
 }
 
 const nextQuestion = () => {
 	if (!quiz.data.show_answers && questionDetails.data?.type != 'Open Ended') {
-		checkAnswer()
+		// Mode không hiển thị đáp án
+		if ((questionDetails.data.type != 'Reading Block' && showAnswers.length === 0) ||
+			(questionDetails.data.type == 'Reading Block' && Object.keys(showSubAnswers).length === 0)) {
+			// Chưa check → gọi checkAnswer()
+			checkAnswer()
+		} else {
+			// Đã check → chuyển câu tiếp theo
+			resetQuestion()
+		}
 	} else {
 		if (questionDetails.data?.type == 'Open Ended') addToLocalStorage()
-		// For Reading Block, also save to localStorage before moving to next question
-		if (questionDetails.data?.type == 'Reading Block') addToLocalStorage()
 		resetQuestion()
 	}
 }
 
 const resetQuestion = () => {
-	if (activeQuestion.value == quiz.data.questions.length) return
+	if (activeQuestion.value == quiz.data.questions.length) {
+		return
+	}
 	activeQuestion.value = activeQuestion.value + 1
 	selectedOptions.splice(0, selectedOptions.length, ...[0, 0, 0, 0])
-	// Reset Reading Block state
-	Object.keys(selectedSubOptions).forEach(key => delete selectedSubOptions[key])
-	Object.keys(showSubAnswers).forEach(key => delete showSubAnswers[key])
 	showAnswers.length = 0
 	possibleAnswer.value = null
 }
@@ -901,13 +1428,55 @@ const createSubmission = () => {
 	)
 }
 
+const createSubmissionAsync = () => {
+	return new Promise((resolve, reject) => {
+		quizSubmission.submit(
+			{},
+			{
+				onSuccess(data) {
+					markLessonProgress()
+					if (quiz.data && quiz.data.max_attempts) attempts.reload()
+					if (quiz.data.duration) clearInterval(timerInterval)
+					resolve(data)
+				},
+				onError(err) {
+					const errorTitle = err?.message || ''
+					if (errorTitle.includes('MaximumAttemptsExceededError')) {
+						const errorMessage = err.messages?.[0] || err
+						toast.error(__(errorMessage))
+						setTimeout(() => {
+							window.location.reload()
+						}, 3000)
+					}
+					reject(err)
+				},
+			}
+		)
+	})
+}
+
 const resetQuiz = () => {
 	activeQuestion.value = 0
 	selectedOptions.splice(0, selectedOptions.length, ...[0, 0, 0, 0])
 	showAnswers.length = 0
+	Object.keys(showSubAnswers).forEach(key => delete showSubAnswers[key])
 	quizSubmission.reset()
+	
+	// Reset All Questions mode state properly
+	Object.keys(allQuestionsAnswers).forEach(key => delete allQuestionsAnswers[key])
+	Object.keys(allQuestionsDetails).forEach(key => delete allQuestionsDetails[key])
+	Object.keys(allShowAnswers).forEach(key => delete allShowAnswers[key])
+	Object.keys(allShowSubAnswers).forEach(key => delete allShowSubAnswers[key])
+	
 	populateQuestions()
 	setupTimer()
+	
+	// Reload All Questions details if in All Questions mode
+	if (isAllQuestionsMode.value) {
+		setTimeout(() => {
+			loadAllQuestionsDetails()
+		}, 100) // Small delay to ensure questions are populated first
+	}
 }
 
 const getInstructions = (question) => {
@@ -916,6 +1485,294 @@ const getInstructions = (question) => {
 		else return __('Choose one answer')
 	else return __('Type your answer')
 }
+
+// All Questions Mode Methods
+const markAllQuestionsAnswer = (questionIndex, optionIndex) => {
+	if (!allQuestionsAnswers[questionIndex]) {
+		allQuestionsAnswers[questionIndex] = { 
+			selectedOptions: [0, 0, 0, 0],
+			possibleAnswer: '',
+			selectedSubOptions: {}
+		}
+	}
+	
+	const questionType = allQuestionsDetails[questionIndex]?.type
+	if (questionType === 'Choices') {
+		if (allQuestionsDetails[questionIndex].multiple) {
+			// Multiple choice - toggle checkbox
+			allQuestionsAnswers[questionIndex].selectedOptions[optionIndex - 1] = 
+				allQuestionsAnswers[questionIndex].selectedOptions[optionIndex - 1] ? 0 : 1
+		} else {
+			// Single choice - reset others
+			allQuestionsAnswers[questionIndex].selectedOptions = [0, 0, 0, 0]
+			allQuestionsAnswers[questionIndex].selectedOptions[optionIndex - 1] = 1
+		}
+	}
+}
+
+const markAllSubAnswer = (questionIndex, subQuestionIndex, optionIndex) => {
+	if (!allQuestionsAnswers[questionIndex]) {
+		allQuestionsAnswers[questionIndex] = {
+			selectedOptions: [0, 0, 0, 0],
+			possibleAnswer: '',
+			selectedSubOptions: {}
+		}
+	}
+	
+	if (!allQuestionsAnswers[questionIndex].selectedSubOptions[subQuestionIndex]) {
+		allQuestionsAnswers[questionIndex].selectedSubOptions[subQuestionIndex] = [0, 0, 0, 0]
+	}
+	
+	// Reset and set new answer for radio button
+	allQuestionsAnswers[questionIndex].selectedSubOptions[subQuestionIndex] = [0, 0, 0, 0]
+	allQuestionsAnswers[questionIndex].selectedSubOptions[subQuestionIndex][optionIndex - 1] = 1
+}
+
+const loadAllQuestionsDetails = async () => {
+	// Safety check - make sure questions array exists and has items
+	if (!questions || questions.length === 0) {
+		return
+	}
+	
+	for (let i = 0; i < questions.length; i++) {
+		const question = questions[i]
+		
+		// Initialize answer structure
+		if (!allQuestionsAnswers[i]) {
+			allQuestionsAnswers[i] = {
+				selectedOptions: [0, 0, 0, 0],
+				possibleAnswer: '',
+				selectedSubOptions: {}
+			}
+		}
+		
+		// Load question details
+		try {
+			const response = await call('lms.lms.utils.get_question_details', {
+				question: question.question
+			})
+			allQuestionsDetails[i] = response
+		} catch (error) {
+			// Error loading question
+		}
+	}
+}
+
+const submitAllQuestions = async () => {
+	// Validate all questions are answered
+	for (let i = 0; i < questions.length; i++) {
+		const answer = allQuestionsAnswers[i]
+		const questionType = allQuestionsDetails[i]?.type
+		
+		if (questionType === 'Choices') {
+			const hasAnswer = answer.selectedOptions.some(opt => opt === 1)
+			if (!hasAnswer) {
+				toast.warning(__('Please answer question {0}').format(i + 1))
+				return
+			}
+		} else if (questionType === 'User Input') {
+			if (!answer.possibleAnswer || (typeof answer.possibleAnswer === 'string' && answer.possibleAnswer.trim() === '')) {
+				toast.warning(__('Please answer question {0}').format(i + 1))
+				return
+			}
+		} else if (questionType === 'Reading Block') {
+			const subQuestions = allQuestionsDetails[i].sub_questions || []
+			for (let subIdx = 0; subIdx < subQuestions.length; subIdx++) {
+				const subAnswer = answer.selectedSubOptions[subIdx]
+				if (!subAnswer || !subAnswer.some(opt => opt === 1)) {
+					toast.warning(__('Please answer all sub-questions in question {0}').format(i + 1))
+					return
+				}
+			}
+		}
+	}
+	
+	// Check if should show answers immediately
+	if (quiz.data.show_answers) {
+		// Submit all answers and show results immediately
+		for (let i = 0; i < questions.length; i++) {
+			await checkAllQuestionAnswer(i)
+			// Add to localStorage like Sequential mode
+			addAllQuestionToLocalStorage(i)
+		}
+		// Create submission to get the score but don't redirect to summary
+		await createSubmissionAsync()
+	} else {
+		// Just save answers to localStorage without showing results
+		for (let i = 0; i < questions.length; i++) {
+			addAllQuestionToLocalStorage(i)
+		}
+		// Create submission immediately since no answers to review
+		await createSubmissionAsync()
+	}
+}
+
+const checkAllQuestionAnswer = async (questionIndex) => {
+	const answer = allQuestionsAnswers[questionIndex]
+	const questionDetails = allQuestionsDetails[questionIndex]
+	const question = questions[questionIndex]
+	
+	let answers = []
+	
+	if (questionDetails.type === 'Choices') {
+		answer.selectedOptions.forEach((option, index) => {
+			if (option) {
+				answers.push({
+					option: questionDetails[`option_${index + 1}`],
+					option_index: index,
+				})
+			}
+		})
+	} else if (questionDetails.type === 'User Input') {
+		answers.push({
+			answer: answer.possibleAnswer,
+		})
+	} else if (questionDetails.type === 'Reading Block') {
+		Object.keys(answer.selectedSubOptions).forEach(subIdx => {
+			const subOptions = answer.selectedSubOptions[subIdx]
+			subOptions.forEach((option, optionIdx) => {
+				if (option) {
+					answers.push({
+						sub_question_index: parseInt(subIdx),
+						option: questionDetails.sub_questions[subIdx][`option_${optionIdx + 1}`],
+						option_index: optionIdx,
+					})
+				}
+			})
+		})
+	}
+	
+	try {
+		const response = await call('lms.lms.doctype.lms_quiz.lms_quiz.check_answer', {
+			question: question.question,
+			type: questionDetails.type,
+			answers: JSON.stringify(answers),
+		})
+		
+		if (questionDetails.type === 'Choices') {
+			allShowAnswers[questionIndex] = []
+			answer.selectedOptions.forEach((option, index) => {
+				if (option) {
+					allShowAnswers[questionIndex][index] = option && response[index]
+				} else if (response[index] == 2) {
+					allShowAnswers[questionIndex][index] = 2
+				} else {
+					allShowAnswers[questionIndex][index] = undefined
+				}
+			})
+		} else if (questionDetails.type === 'User Input') {
+			// Handle new User Input response format
+			
+			if (response && typeof response === 'object' && 'is_correct' in response) {
+				// New format with correct answers
+				allShowAnswers[questionIndex] = response.is_correct
+				
+				// Store correct answers for display
+				if (!allQuestionsDetails[questionIndex].correct_answers) {
+					allQuestionsDetails[questionIndex].correct_answers = response.correct_answers || []
+				}
+			} else {
+				// Fallback for old format
+				allShowAnswers[questionIndex] = response
+			}
+		} else if (questionDetails.type === 'Reading Block') {
+			// Phải tạo response format đúng vì backend không trả sub_results cho All Questions
+			allShowSubAnswers[questionIndex] = {}
+			
+			// Get sub questions to process results  
+			const subQuestions = questionDetails.sub_questions || []
+			const userSubAnswers = answer.selectedSubOptions
+			
+			// Process each sub-question manually
+			Object.keys(userSubAnswers).forEach(subIdx => {
+				const subOptions = userSubAnswers[subIdx]
+				const subQ = subQuestions[parseInt(subIdx)]
+				
+				if (!allShowSubAnswers[questionIndex][subIdx]) {
+					allShowSubAnswers[questionIndex][subIdx] = [null, null, null, null]
+				}
+				
+				// Check each option for this sub-question
+				subOptions.forEach((wasSelected, optionIdx) => {
+					if (wasSelected) {
+						// User selected this option
+						const isCorrect = subQ[`is_correct_${optionIdx + 1}`] === 1
+						allShowSubAnswers[questionIndex][subIdx][optionIdx] = isCorrect ? 1 : 0
+					} else {
+						// User didn't select this option, check if it was correct
+						const isCorrect = subQ[`is_correct_${optionIdx + 1}`] === 1
+						if (isCorrect) {
+							allShowSubAnswers[questionIndex][subIdx][optionIdx] = 2 // Correct but not selected
+						}
+					}
+				})
+			})
+		}
+	} catch (error) {
+		// Error handling for answer checking
+	}
+}
+
+const addAllQuestionToLocalStorage = (questionIndex) => {
+	// Safety check
+	if (!questions || questionIndex >= questions.length) {
+		return
+	}
+	
+	let quizData = JSON.parse(localStorage.getItem(quiz.data.title))
+	
+	// Get answer data
+	const answer = allQuestionsAnswers[questionIndex]
+	const questionDetails = allQuestionsDetails[questionIndex]
+	const question = questions[questionIndex]
+	
+	if (!answer || !questionDetails || !question) {
+		return
+	}
+	
+	// Prepare answer string based on question type
+	let answerString = ''
+	let isCorrectArray = []
+	
+	if (questionDetails.type === 'Choices') {
+		answerString = answer.selectedOptions.join(',')
+		isCorrectArray = allShowAnswers[questionIndex] || []
+	} else if (questionDetails.type === 'User Input') {
+		answerString = answer.possibleAnswer || ''
+		isCorrectArray = allShowAnswers[questionIndex] ? [1] : [0]
+	} else if (questionDetails.type === 'Reading Block') {
+		// For Reading Block, create answer string from sub-questions
+		const subAnswers = []
+		Object.keys(answer.selectedSubOptions).forEach(subIdx => {
+			const subOptions = answer.selectedSubOptions[subIdx]
+			subAnswers.push(subOptions.join(','))
+		})
+		answerString = subAnswers.join(';')
+		// For Reading Block, check if any sub-question was correct
+		const hasCorrectSubAnswer = Object.keys(allShowSubAnswers[questionIndex] || {}).some(subIdx => {
+			return allShowSubAnswers[questionIndex][subIdx].some(result => result === 1)
+		})
+		isCorrectArray = hasCorrectSubAnswer ? [1] : [0]
+	}
+	
+	let questionData = {
+		question_name: question.question,
+		answer: answerString,
+		is_correct: isCorrectArray.filter((answer) => {
+			return answer != undefined
+		}),
+	}
+	
+	quizData ? quizData.push(questionData) : (quizData = [questionData])
+	localStorage.setItem(quiz.data.title, JSON.stringify(quizData))
+}
+
+// Load all questions when in All Questions mode
+watch(() => [questions.length, isAllQuestionsMode.value], () => {
+	if (isAllQuestionsMode.value && questions.length > 0) {
+		loadAllQuestionsDetails()
+	}
+}, { immediate: true })
 
 const markLessonProgress = () => {
 	let pathname = window.location.pathname.split('/')

@@ -1424,10 +1424,13 @@ def get_country_code():
 
 @frappe.whitelist()
 def get_question_details(question):
+
+	
 	fields = ["question", "type", "multiple"]
 	for i in range(1, 5):
 		fields.append(f"option_{i}")
 		fields.append(f"explanation_{i}")
+		fields.append(f"possibility_{i}")  # Add possibility fields for User Input
 
 	question_details = frappe.db.get_value("LMS Question", question, fields, as_dict=1)
 	

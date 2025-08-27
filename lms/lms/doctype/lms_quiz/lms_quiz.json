@@ -22,6 +22,8 @@
   "enable_negative_marking",
   "marks_to_cut",
   "section_break_sbjx",
+  "display_mode",
+  "section_break_sbjy",
   "questions",
   "section_break_3",
   "lesson",
@@ -49,12 +51,6 @@
    "label": "Lesson",
    "options": "Course Lesson",
    "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "max_attempts",
-   "fieldtype": "Int",
-   "label": "Max Attempts"
   },
   {
    "fetch_from": "lesson.course",
@@ -149,6 +145,21 @@
    "fieldname": "marks_to_cut",
    "fieldtype": "Int",
    "label": "Marks To Cut"
+  },
+  {
+   "fieldname": "display_mode",
+   "fieldtype": "Select",
+   "label": "Display Mode",
+   "options": "Sequential\nAll Questions"
+  },
+  {
+   "fieldname": "section_break_sbjy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "max_attempts",
+   "fieldtype": "Int",
+   "label": "Max Attempts"
   }
  ],
  "grid_page_length": 50,
@@ -159,8 +170,8 @@
    "link_fieldname": "quiz"
   }
  ],
- "modified": "2025-06-27 20:00:15.660323",
- "modified_by": "sayali@frappe.io",
+ "modified": "2025-08-24 02:55:40.655009",
+ "modified_by": "Administrator",
  "module": "LMS",
  "name": "LMS Quiz",
  "owner": "Administrator",

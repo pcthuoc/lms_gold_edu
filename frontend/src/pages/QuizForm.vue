@@ -66,6 +66,15 @@
 						v-model="quizDetails.doc.duration"
 						:label="__('Duration (in minutes)')"
 					/>
+					<FormControl
+						v-model="quizDetails.doc.display_mode"
+						type="select"
+						:label="__('Display Mode')"
+						:options="[
+							{ label: __('Sequential (One by One)'), value: 'Sequential' },
+							{ label: __('All Questions (Show All)'), value: 'All Questions' }
+						]"
+					/>
 				</div>
 				<div class="space-y-5">
 					<FormControl
