@@ -345,32 +345,15 @@ const addAssignments = () => {
 }
 
 const addPrograms = () => {
-	let activeFor = ['Programs', 'ProgramForm']
-	let index = 1
-	let canAddProgram = true // Luôn hiển thị Programs cho tất cả user
-
-	// Đối với student (không phải instructor/moderator)
-	if (!isInstructor.value && !isModerator.value) {
-		// Nếu có learning paths data thì ẩn Courses menu để tránh lộn xộn
-		if (settingsStore.learningPaths.data) {
-			sidebarLinks.value = sidebarLinks.value.filter(
-				(link) => link.label !== 'Courses'
-			)
-		}
-		activeFor.push('CourseDetail')
-		activeFor.push('Lesson')
-		index = 0
-	}
-
-	// Luôn thêm Programs menu
-	if (canAddProgram) {
-		sidebarLinks.value.splice(index, 0, {
-			label: 'Programs',
-			icon: 'Route',
-			to: 'Programs',
-			activeFor: activeFor,
-		})
-	}
+       let activeFor = ['Programs', 'ProgramForm', 'CourseDetail', 'Lesson']
+       let index = 1;
+       // Luôn hiển thị Programs cho tất cả user, không ẩn Courses nữa
+       sidebarLinks.value.splice(index, 0, {
+	       label: 'Programs',
+	       icon: 'Route',
+	       to: 'Programs',
+	       activeFor: activeFor,
+       });
 }
 
 const openPageModal = (link) => {

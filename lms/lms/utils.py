@@ -4,6 +4,7 @@ import re
 import string
 
 import frappe
+import frappe.client
 import razorpay
 import requests
 from frappe import _
@@ -2135,3 +2136,324 @@ def get_related_courses(course):
 
 def persona_captured():
 	frappe.db.set_single_value("LMS Settings", "persona_captured", 1)
+
+
+def handle_program_member_insert(doc, method):
+	"""Hook để xử lý khi member mới được thêm vào program"""
+	from frappe.utils import get_fullname, now
+	
+	member_fullname = get_fullname(doc.member) if doc.member else "Unknown"
+	added_by = frappe.session.user if hasattr(frappe, 'session') and hasattr(frappe.session, 'user') else 'Unknown'
+	
+	log_msg = (
+		f"🔥 [LMS HOOK] NEW MEMBER DETECTED: username={doc.member}, fullname={member_fullname}, "
+		f"program={doc.parent}, added_by={added_by}, at={now()}"
+	)
+	print(log_msg)
+	frappe.log_error(log_msg, "LMS Hook - Member Insert")
+	
+	# Auto-enroll member vào tất cả courses của program
+	try:
+		if hasattr(doc, 'auto_enroll_member_to_courses'):
+			doc.auto_enroll_member_to_courses()
+		else:
+			# Fallback: gọi trực tiếp logic auto-enroll
+			auto_enroll_member_to_program_courses(doc.member, doc.parent)
+	except Exception as e:
+		print(f"❌ Error in hook auto-enroll: {str(e)}")
+		frappe.log_error(f"Hook auto-enroll error: {str(e)}", "LMS Hook Error")
+
+
+def auto_enroll_member_to_program_courses(member_email, program_name):
+	"""Auto-enroll member vào tất cả courses của program"""
+	print(f"🎯 Hook Auto-enrolling {member_email} into program {program_name}")
+	
+	# Get all courses of the program
+	courses = frappe.get_all(
+		"LMS Program Course", 
+		{"parent": program_name}, 
+		["course"]
+	)
+	
+	for course_row in courses:
+		course_name = course_row.course
+		
+		# Check if already enrolled
+		existing = frappe.db.exists("LMS Enrollment", {
+			"course": course_name,
+			"member": member_email
+		})
+		
+		if existing:
+			print(f"⚠️ {member_email} already enrolled in {course_name}")
+			continue
+			
+		try:
+			# Create enrollment
+			enrollment = frappe.get_doc({
+				"doctype": "LMS Enrollment",
+				"course": course_name,
+				"member": member_email,
+				"enrollment_date": frappe.utils.today()
+			})
+			enrollment.insert(ignore_permissions=True)
+			print(f"✅ Hook enrolled {member_email} in {course_name}")
+			
+		except Exception as e:
+			print(f"❌ Hook enrollment error: {str(e)}")
+
+
+def handle_program_member_insert(doc, method):
+	"""Hook được gọi khi thêm member mới vào program từ FE"""
+	from frappe.utils import now
+	
+	# Log chi tiết member mới được thêm
+	member_fullname = get_fullname(doc.member) if doc.member else "Unknown"
+	added_by = frappe.session.user if hasattr(frappe, 'session') and hasattr(frappe.session, 'user') else 'Unknown'
+	log_msg = (
+		f"🎯 [API HOOK] New member added: username={doc.member}, fullname={member_fullname}, "
+		f"program={doc.parent}, added_by={added_by}, at={now()}"
+	)
+	print(log_msg)
+	frappe.log_error(log_msg, "LMS Program Member Hook")
+	
+	# Gọi auto-enroll cho member này
+	try:
+		# Lấy program document
+		program_doc = frappe.get_doc("LMS Program", doc.parent)
+		
+		# Lấy tất cả courses trong program
+		if program_doc.program_courses:
+			for course_row in program_doc.program_courses:
+				course_name = course_row.course
+				if not course_name:
+					continue
+					
+				print(f"🔄 [HOOK] Enrolling {doc.member} -> {course_name}")
+				
+				# Check if already enrolled
+				existing = frappe.db.exists("LMS Enrollment", {
+					"course": course_name,
+					"member": doc.member
+				})
+				
+				if existing:
+					print(f"⚠️ [HOOK] {doc.member} already enrolled in {course_name}")
+					continue
+					
+				try:
+					# Create enrollment
+					enrollment = frappe.get_doc({
+						"doctype": "LMS Enrollment",
+						"course": course_name,
+						"member": doc.member,
+						"enrollment_date": frappe.utils.today()
+					})
+					enrollment.insert(ignore_permissions=True)
+					print(f"✅ [HOOK] Successfully enrolled {doc.member} in {course_name}")
+					
+					# Send notification
+					send_program_enrollment_notification(doc.member, course_name, doc.parent)
+					
+				except Exception as e:
+					print(f"❌ [HOOK] Enrollment error: {str(e)}")
+		else:
+			print(f"📝 [HOOK] No courses in program {doc.parent} to enroll member")
+			
+	except Exception as e:
+		print(f"❌ [HOOK] Error processing member {doc.member}: {str(e)}")
+		frappe.log_error(f"Hook processing error: {str(e)}", "LMS Program Member Hook Error")
+
+
+def send_program_enrollment_notification(member_email, course_name, program_name):
+	"""Send notification when member is auto-enrolled via hook"""
+	try:
+		# Get course title
+		course_title = frappe.db.get_value("LMS Course", course_name, "title") or course_name
+		program_title = frappe.db.get_value("LMS Program", program_name, "title") or program_name
+		
+		# Create notification
+		notification = frappe._dict({
+			"subject": _("Đã được ghi danh vào khóa học: {0}").format(course_title),
+			"email_content": _("Bạn đã được tự động ghi danh vào khóa học {0} thông qua chương trình {1}. Bạn có thể bắt đầu học ngay bây giờ!").format(course_title, program_title),
+			"document_type": "LMS Course",
+			"document_name": course_name,
+			"for_user": member_email,
+			"from_user": "Administrator",
+			"type": "Alert",
+			"link": f"/lms/courses/{course_name}",
+		})
+		
+		make_notification_logs(notification, [member_email])
+		print(f"📧 [HOOK] Notification sent to {member_email} for {course_title}")
+		
+	except Exception as e:
+		print(f"❌ [HOOK] Notification error: {str(e)}")
+
+
+def handle_program_member_delete(doc, method):
+	"""Hook được gọi khi xóa member khỏi program từ FE"""
+	from frappe.utils import now
+	
+	# Log chi tiết member bị xóa
+	member_fullname = get_fullname(doc.member) if doc.member else "Unknown"
+	deleted_by = frappe.session.user if hasattr(frappe, 'session') and hasattr(frappe.session, 'user') else 'Unknown'
+	log_msg = (
+		f"🗑️ [API HOOK] Member removed: username={doc.member}, fullname={member_fullname}, "
+		f"program={doc.parent}, deleted_by={deleted_by}, at={now()}"
+	)
+	print(log_msg)
+	frappe.log_error(log_msg, "LMS Program Member Delete Hook")
+	
+	# Auto-unenroll khỏi tất cả courses trong program
+	try:
+		# Lấy program document
+		program_doc = frappe.get_doc("LMS Program", doc.parent)
+		
+		# Lấy tất cả courses trong program
+		if program_doc.program_courses:
+			for course_row in program_doc.program_courses:
+				course_name = course_row.course
+				if not course_name:
+					continue
+					
+				print(f"🔄 [DELETE HOOK] Unenrolling {doc.member} from {course_name}")
+				
+				# Check if enrolled
+				existing = frappe.db.exists("LMS Enrollment", {
+					"course": course_name,
+					"member": doc.member
+				})
+				
+				if existing:
+					try:
+						# Delete enrollment
+						frappe.delete_doc("LMS Enrollment", existing, ignore_permissions=True)
+						print(f"✅ [DELETE HOOK] Successfully unenrolled {doc.member} from {course_name}")
+						
+					except Exception as e:
+						print(f"❌ [DELETE HOOK] Unenrollment error: {str(e)}")
+				else:
+					print(f"⚠️ [DELETE HOOK] {doc.member} not enrolled in {course_name}")
+		else:
+			print(f"📝 [DELETE HOOK] No courses in program {doc.parent} to unenroll member")
+			
+	except Exception as e:
+		print(f"❌ [DELETE HOOK] Error processing member removal {doc.member}: {str(e)}")
+		frappe.log_error(f"Delete hook processing error: {str(e)}", "LMS Program Member Delete Hook Error")
+
+
+def process_new_member(member_email, program_name):
+	"""Xử lý member mới được thêm vào program"""
+	from frappe.utils import now
+	
+	member_fullname = get_fullname(member_email) if member_email else "Unknown"
+	added_by = frappe.session.user if hasattr(frappe, 'session') and hasattr(frappe.session, 'user') else 'Unknown'
+	log_msg = (
+		f"🎯 [API DETECT] New member: username={member_email}, fullname={member_fullname}, "
+		f"program={program_name}, added_by={added_by}, at={now()}"
+	)
+	print(log_msg)
+	frappe.log_error(log_msg, "LMS Program Member API Detection")
+	
+	# Auto-enroll vào courses
+	try:
+		program_doc = frappe.get_doc("LMS Program", program_name)
+		if program_doc.program_courses:
+			for course_row in program_doc.program_courses:
+				course_name = course_row.course
+				if not course_name:
+					continue
+				
+				# Check if already enrolled
+				existing = frappe.db.exists("LMS Enrollment", {
+					"course": course_name,
+					"member": member_email
+				})
+				
+				if not existing:
+					try:
+						enrollment = frappe.get_doc({
+							"doctype": "LMS Enrollment",
+							"course": course_name,
+							"member": member_email,
+							"enrollment_date": frappe.utils.today()
+						})
+						enrollment.insert(ignore_permissions=True)
+						print(f"✅ [API] Enrolled {member_email} in {course_name}")
+						
+						# Send notification
+						send_program_enrollment_notification(member_email, course_name, program_name)
+						
+					except Exception as e:
+						print(f"❌ [API] Enrollment error: {str(e)}")
+				else:
+					print(f"⚠️ [API] {member_email} already enrolled in {course_name}")
+		else:
+			print(f"📝 [API] No courses in program {program_name}")
+			
+	except Exception as e:
+		print(f"❌ [API] Error processing new member: {str(e)}")
+
+
+def process_removed_member(member_email, program_name):
+	"""Xử lý member bị xóa khỏi program"""
+	from frappe.utils import now
+	
+	member_fullname = get_fullname(member_email) if member_email else "Unknown"
+	removed_by = frappe.session.user if hasattr(frappe, 'session') and hasattr(frappe.session, 'user') else 'Unknown'
+	log_msg = (
+		f"🗑️ [API DETECT] Removed member: username={member_email}, fullname={member_fullname}, "
+		f"program={program_name}, removed_by={removed_by}, at={now()}"
+	)
+	print(log_msg)
+	frappe.log_error(log_msg, "LMS Program Member API Removal")
+	
+	# Auto-unenroll khỏi courses
+	try:
+		program_doc = frappe.get_doc("LMS Program", program_name)
+		if program_doc.program_courses:
+			for course_row in program_doc.program_courses:
+				course_name = course_row.course
+				if not course_name:
+					continue
+				
+				existing = frappe.db.exists("LMS Enrollment", {
+					"course": course_name,
+					"member": member_email
+				})
+				
+				if existing:
+					try:
+						frappe.delete_doc("LMS Enrollment", existing, ignore_permissions=True)
+						print(f"✅ [API] Unenrolled {member_email} from {course_name}")
+					except Exception as e:
+						print(f"❌ [API] Unenrollment error: {str(e)}")
+				else:
+					print(f"⚠️ [API] {member_email} not enrolled in {course_name}")
+					
+	except Exception as e:
+		print(f"❌ [API] Error processing removed member: {str(e)}")
+
+
+def send_program_enrollment_notification(member_email, course_name, program_name):
+	"""Gửi notification khi enroll member vào course through program"""
+	try:
+		# Tạo notification cho member mới được enroll
+		make_notification_logs(
+			{
+				"subject": _("You have been enrolled in course {0} via program {1}").format(course_name, program_name),
+				"email_content": _(
+					"You have been enrolled in the course <b>{0}</b> through the program <b>{1}</b>. "
+					"You can now access the course content."
+				).format(course_name, program_name),
+				"document_type": "LMS Enrollment",
+				"document_name": f"{member_email}-{course_name}",
+			},
+			[member_email],
+		)
+		print(f"✅ [NOTIFICATION] Sent program enrollment notification to {member_email}")
+		
+	except Exception as e:
+		print(f"❌ [NOTIFICATION] Failed to send notification: {str(e)}")
+		frappe.log_error(f"Notification error: {str(e)}", "LMS Program Enrollment Notification")

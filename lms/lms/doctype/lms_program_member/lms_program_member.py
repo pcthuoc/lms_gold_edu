@@ -10,9 +10,16 @@ from frappe.utils import get_fullname
 
 class LMSProgramMember(Document):
 	def after_insert(self):
-		"""Auto-enroll this member to all courses of the program"""
-		print(f"DEBUG: New member {self.member} added to program {self.parent}")
-		frappe.log_error(f"DEBUG: New member {self.member} added to program {self.parent}", "LMS Auto Enrollment")
+		"""Auto-enroll this member to all courses of the program, log chi tiết member mới"""
+		from frappe.utils import now
+		member_fullname = get_fullname(self.member)
+		added_by = frappe.session.user if hasattr(frappe, 'session') and hasattr(frappe.session, 'user') else 'Unknown'
+		log_msg = (
+			f"[LMS] New member added: username={self.member}, fullname={member_fullname}, "
+			f"program={self.parent}, added_by={added_by}, at={now()}"
+		)
+		print(log_msg)
+		frappe.log_error(log_msg, "LMS Auto Enrollment")
 		try:
 			self.auto_enroll_member_to_courses()
 		except Exception as e:
