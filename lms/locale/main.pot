@@ -5063,13 +5063,7 @@ msgstr ""
 msgid "Programming Exercise updated successfully"
 msgstr ""
 
-#. Label of the programming_exercises (Check) field in DocType 'LMS Settings'
-#: frontend/src/pages/ProgrammingExercises/ProgrammingExerciseSubmissions.vue:308
-#: frontend/src/pages/ProgrammingExercises/ProgrammingExercises.vue:158
-#: frontend/src/pages/ProgrammingExercises/ProgrammingExercises.vue:166
-#: lms/lms/doctype/lms_settings/lms_settings.json
-msgid "Programming Exercises"
-msgstr ""
+
 
 #: frontend/src/pages/Programs.vue:206 frontend/src/pages/Programs.vue:212
 #: lms/www/lms.py:295

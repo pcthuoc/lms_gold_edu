@@ -344,43 +344,25 @@ const addAssignments = () => {
 	}
 }
 
-const addProgrammingExercises = () => {
-	if (isInstructor.value || isModerator.value) {
-		sidebarLinks.value.splice(3, 0, {
-			label: 'Programming Exercises',
-			icon: 'Code',
-			to: 'ProgrammingExercises',
-			activeFor: [
-				'ProgrammingExercises',
-				'ProgrammingExerciseForm',
-				'ProgrammingExerciseSubmissions',
-				'ProgrammingExerciseSubmission',
-			],
-		})
-	}
-}
-
 const addPrograms = () => {
 	let activeFor = ['Programs', 'ProgramForm']
 	let index = 1
-	let canAddProgram = false
+	let canAddProgram = true // Luôn hiển thị Programs cho tất cả user
 
-	if (
-		!isInstructor.value &&
-		!isModerator.value &&
-		settingsStore.learningPaths.data
-	) {
-		sidebarLinks.value = sidebarLinks.value.filter(
-			(link) => link.label !== 'Courses'
-		)
+	// Đối với student (không phải instructor/moderator)
+	if (!isInstructor.value && !isModerator.value) {
+		// Nếu có learning paths data thì ẩn Courses menu để tránh lộn xộn
+		if (settingsStore.learningPaths.data) {
+			sidebarLinks.value = sidebarLinks.value.filter(
+				(link) => link.label !== 'Courses'
+			)
+		}
 		activeFor.push('CourseDetail')
 		activeFor.push('Lesson')
 		index = 0
-		canAddProgram = true
-	} else if (isInstructor.value || isModerator.value) {
-		canAddProgram = true
 	}
 
+	// Luôn thêm Programs menu
 	if (canAddProgram) {
 		sidebarLinks.value.splice(index, 0, {
 			label: 'Programs',
@@ -643,7 +625,7 @@ watch(userResource, () => {
 		isModerator.value = userResource.data.is_moderator
 		isInstructor.value = userResource.data.is_instructor
 		addPrograms()
-		addProgrammingExercises()
+
 		addQuizzes()
 		addAssignments()
 		setUpOnboarding()

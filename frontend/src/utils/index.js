@@ -2,7 +2,6 @@ import { call, toast } from 'frappe-ui'
 import { useTimeAgo } from '@vueuse/core'
 import { theme } from '@/utils/theme'
 import { Quiz } from '@/utils/quiz'
-import { Program } from '@/utils/program'
 import { Assignment } from '@/utils/assignment'
 import { Upload } from '@/utils/upload'
 import { Markdown } from '@/utils/markdownParser'
@@ -131,7 +130,6 @@ export function getEditorTools() {
 		},
 		quiz: Quiz,
 		assignment: Assignment,
-		program: Program,
 		upload: Upload,
 		markdown: {
 			class: Markdown,
@@ -426,12 +424,6 @@ export function getSidebarLinks() {
 			icon: 'GraduationCap',
 			to: 'CertifiedParticipants',
 			activeFor: ['CertifiedParticipants'],
-		},
-		{
-			label: 'Jobs',
-			icon: 'Briefcase',
-			to: 'Jobs',
-			activeFor: ['Jobs', 'JobDetail'],
 		},
 		{
 			label: 'Statistics',
