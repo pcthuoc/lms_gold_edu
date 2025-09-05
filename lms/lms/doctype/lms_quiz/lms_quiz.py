@@ -101,9 +101,6 @@ def set_total_marks(questions):
 def quiz_summary(quiz, results):
 
 	results = results and json.loads(results)
-	
-	# ✅ DEBUG: Log what we receive from frontend
-	print(f"🔍 [DEBUG] quiz_summary received results: {results}")
 
 	if results and len(results) > 0:
 
@@ -399,14 +396,18 @@ def convert_all_questions_to_standard_format(all_questions_results, quiz_name):
 					# For other types (User Input, etc.)
 					if question_type == "User Input":
 						# Check User Input answer using existing function
-						# First, let's see what possibilities exist for this question
-						question_doc = frappe.get_doc("LMS Question", question_id)
-						for i in range(1, 5):
-							possibility = getattr(question_doc, f"possibility_{i}", "")
-							if possibility:
+						
+						# Handle JSON string from localStorage
+						actual_answer = answer
+						if isinstance(answer, str) and answer.startswith('['):
+							try:
+								parsed_answer = json.loads(answer)
+								if isinstance(parsed_answer, list) and len(parsed_answer) > 0:
+									actual_answer = parsed_answer[0]  # Get first item: "xin chào"
+							except json.JSONDecodeError:
 								pass
 						
-						check_result = check_answer(question_id, "User Input", json.dumps([answer]))
+						check_result = check_answer(question_id, "User Input", json.dumps([actual_answer]))
 						
 						# check_answer returns dict for User Input: {'is_correct': 0/1, 'correct_answers': [...], 'user_answer': '...'}
 						if isinstance(check_result, dict):
@@ -417,7 +418,7 @@ def convert_all_questions_to_standard_format(all_questions_results, quiz_name):
 						
 						standard_results.append({
 							"question_name": question_id,
-							"answer": answer,
+							"answer": actual_answer,  # Use the actual answer, not JSON string
 							"is_correct": is_correct
 						})
 					else:
@@ -552,11 +553,6 @@ def process_results(results, quiz_details):
 				result["marks"] = 0
 				result["is_correct"] = False
 		elif question_details.type != "Open Ended":
-			print(f"=== PROCESS RESULTS DEBUG ===")
-			print(f"Question: {result['question_name']}")
-			print(f"Type: {question_details.type}")
-			print(f"Raw is_correct: {result['is_correct']}")
-			
 			correct = False  # Initialize correct variable
 			if len(result["is_correct"]) > 0:
 				# For Choices questions, check scoring strategy
@@ -575,8 +571,6 @@ def process_results(results, quiz_details):
 						wrong_selected = result["is_correct"].count(0)
 						missed_correct = result["is_correct"].count(2)
 						
-						print(f"  correct_selected: {correct_selected}, wrong_selected: {wrong_selected}, missed_correct: {missed_correct}")
-						
 						# For Sequential mode: if no 2s in array, need to calculate missed answers
 						if missed_correct == 0 and len(result["is_correct"]) < 4:
 							# This might be Sequential mode with filtered results
@@ -587,7 +581,6 @@ def process_results(results, quiz_details):
 							])
 							if correct_selected < total_correct_options:
 								missed_correct = total_correct_options - correct_selected
-								print(f"  ⚠️ Sequential mode detected: adjusted missed_correct to {missed_correct}")
 						
 						# ✅ ADDITIONAL FIX: For Sequential mode, if we have 2s but still missing info
 						elif missed_correct > 0 and len(result["is_correct"]) < 4:
@@ -605,26 +598,17 @@ def process_results(results, quiz_details):
 								# There are more values in is_correct than accounted for - those must be wrong selections
 								additional_values = len(result["is_correct"]) - accounted_selections
 								wrong_selected += additional_values
-								print(f"  ⚠️ Sequential mode: found {additional_values} additional wrong selections")
-						
-						print(f"  📊 Final counts: correct={correct_selected}, wrong={wrong_selected}, missed={missed_correct}")
 						
 						# Strategy: All-or-Nothing (perfect score required)
 						if wrong_selected == 0 and missed_correct == 0 and correct_selected > 0:
 							correct = True
-							print(f"  ✅ Perfect score: All correct, no wrong, no missed")
 						else:
 							correct = False
-							if wrong_selected > 0:
-								print(f"  ❌ Has wrong selections: {wrong_selected}")
-							if missed_correct > 0:
-								print(f"  ⊖ Has missed correct answers: {missed_correct}")
 				else:
 					correct = False
 			else:
 				correct = False
 			
-			print(f"Calculated correct: {correct}")
 			result["is_correct"] = correct
 
 			if correct:
@@ -633,9 +617,7 @@ def process_results(results, quiz_details):
 				marks = -quiz_details.marks_to_cut if quiz_details.enable_negative_marking else 0
 
 			result["marks"] = marks
-			print(f"Assigned marks: {marks}")
 			score += marks
-			print(f"Current total score: {score}")
 
 		else:
 			is_open_ended = True
@@ -643,11 +625,6 @@ def process_results(results, quiz_details):
 			result["answer"] = re.sub(
 				r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, result["answer"]
 			)
-
-	print(f"=== PROCESS RESULTS SUMMARY ===")
-	print(f"Total score: {score}")
-	print(f"Is open ended: {is_open_ended}")
-	print(f"Final results: {[{'question': r.get('question_name', 'N/A'), 'is_correct': r.get('is_correct', 'N/A'), 'marks': r.get('marks', 'N/A')} for r in results]}")
 
 	return {
 		"results": results,
@@ -741,24 +718,15 @@ def get_question_details(question):
 
 @frappe.whitelist()
 def check_answer(question, type, answers):
-	print(f"=== CHECK_ANSWER CALLED ===")
-	print(f"Question: {question}")
-	print(f"Type: {type}")
-	print(f"Answers: {answers}")
-	
 	answers = json.loads(answers)
 	if type == "Choices":
 		return check_choice_answers(question, answers)
 	elif type == "Reading Block":
 		return check_reading_block_answers(question, answers)
 	else:
-		print(f"=== USER INPUT CHECK_ANSWER ===")
-		print(f"Processing User Input for question: {question}")
-		print(f"Answers data: {answers}")
 		
 		# Get is_correct result
 		is_correct = check_input_answers(question, answers[0])
-		print(f"check_input_answers returned: {is_correct}")
 		
 		# Also return the correct possibilities for display
 		fields = []
@@ -779,15 +747,10 @@ def check_answer(question, type, answers):
 			"user_answer": answers[0].get("answer", "") if isinstance(answers[0], dict) else str(answers[0])
 		}
 		
-		print(f"User Input result: {result}")
 		return result
 
 
 def check_choice_answers(question, answers):
-	print(f"=== CHECK CHOICE ANSWERS DEBUG ===")
-	print(f"Question: {question}")
-	print(f"Raw answers: {answers}")
-	
 	fields = ["multiple"]
 	is_correct = []
 	for num in range(1, 5):
@@ -795,7 +758,6 @@ def check_choice_answers(question, answers):
 		fields.append(f"is_correct_{cstr(num)}")
 
 	question_details = frappe.db.get_value("LMS Question", question, fields, as_dict=1)
-	print(f"Question details: {question_details}")
 
 	# Extract option texts from answers (handle both formats)
 	answer_texts = []
@@ -808,30 +770,20 @@ def check_choice_answers(question, answers):
 			# All Questions mode format: "A đúng"
 			answer_texts.append(answer)
 	
-	print(f"Extracted answer texts: {answer_texts}")
-
 	for num in range(1, 5):
 		option_text = question_details[f"option_{num}"]
 		is_option_correct = question_details[f"is_correct_{num}"]
 		user_selected = option_text in answer_texts
 		
-		print(f"Checking option_{num}: '{option_text}'")
-		print(f"  is_option_correct: {is_option_correct}, user_selected: {user_selected}")
-		
 		if user_selected and is_option_correct:
-			print(f"  ✅ Correctly selected -> 1")
 			is_correct.append(1)
 		elif user_selected and not is_option_correct:
-			print(f"  ❌ Wrongly selected -> 0")
 			is_correct.append(0)
 		elif not user_selected and is_option_correct:
-			print(f"  ⊖ Missed correct answer -> 2")
 			is_correct.append(2)
 		else:
-			print(f"  ⭕ Not selected and not correct -> undefined")
 			is_correct.append(None)
 
-	print(f"Final is_correct result: {is_correct}")
 	return is_correct
 
 
@@ -846,30 +798,20 @@ def check_input_answers(question, answer):
 	else:
 		answer_text = answer
 
-	print(f"=== CHECK INPUT ANSWERS DEBUG ===")
-	print(f"Question: {question}")
-	print(f"User answer: '{answer_text}'")
-
 	question_details = frappe.db.get_value("LMS Question", question, fields, as_dict=1)
-	print(f"Question details: {question_details}")
 	
 	for num in range(1, 5):
 		current_possibility = question_details[f"possibility_{num}"]
-		print(f"Possibility {num}: '{current_possibility}'")
 		
 		# Require exact match (case insensitive, normalize spaces)
 		if current_possibility:
 			# Clean both strings: lowercase, remove extra spaces
 			clean_possibility = ' '.join(current_possibility.strip().lower().split())
 			clean_answer = ' '.join(answer_text.strip().lower().split())
-			print(f"  Cleaned possibility: '{clean_possibility}'")
-			print(f"  Cleaned answer: '{clean_answer}'")
 			
 			if clean_possibility == clean_answer:
-				print(f"  MATCH! Returning 1")
 				return 1
 
-	print(f"No match found. Returning 0")
 	return 0
 
 
@@ -887,10 +829,6 @@ def check_reading_block_answers(question, answers):
 		"score_ratio": [tỷ lệ đúng thực tế: correct/total]
 	}
 	"""
-	print(f"=== CHECK READING BLOCK ANSWERS ===")
-	print(f"Question: {question}")
-	print(f"Answers: {answers}")
-	
 	# Get sub-questions for this Reading Block
 	sub_questions = frappe.get_all(
 		"Reading Sub Question",
@@ -899,10 +837,6 @@ def check_reading_block_answers(question, answers):
 				"is_correct_1", "is_correct_2", "is_correct_3", "is_correct_4"],
 		order_by="idx"
 	)
-	
-	print(f"Found {len(sub_questions)} sub-questions")
-	for i, sq in enumerate(sub_questions):
-		print(f"Sub-question {i}: {sq}")
 	
 	results = []
 	correct_count = 0
@@ -922,11 +856,7 @@ def check_reading_block_answers(question, answers):
 			answer_lookup[sub_idx] = answer["option"]
 			option_index_lookup[sub_idx] = answer["option_index"] + 1  # Convert 0-based to 1-based
 		else:
-			print(f"Warning: Answer format not recognized for sub_question {sub_idx}: {answer}")
 			continue
-	
-	print(f"Answer lookup: {answer_lookup}")
-	print(f"Option index lookup: {option_index_lookup}")
 	
 	# Check each sub-question
 	for idx, sub_q in enumerate(sub_questions):
@@ -935,7 +865,6 @@ def check_reading_block_answers(question, answers):
 			selected_option_index = option_index_lookup[idx]
 			is_correct = sub_q.get(f"is_correct_{selected_option_index}", 0)
 			is_correct_bool = 1 if is_correct else 0
-			print(f"Sub-question {idx}: selected_option={selected_option}, option_index={selected_option_index}, is_correct={is_correct}, is_correct_bool={is_correct_bool}")
 			if is_correct_bool:
 				correct_count += 1
 			results.append({
@@ -945,7 +874,6 @@ def check_reading_block_answers(question, answers):
 			})
 		else:
 			# No answer provided for this sub-question
-			print(f"Sub-question {idx}: no answer provided")
 			results.append({
 				"sub_question_index": idx,
 				"is_correct": 0,
@@ -954,8 +882,6 @@ def check_reading_block_answers(question, answers):
 	
 	total_questions = len(sub_questions)
 	score_ratio = correct_count / total_questions if total_questions > 0 else 0
-	
-	print(f"Final results: correct_count={correct_count}, total_questions={total_questions}, score_ratio={score_ratio}")
 	
 	return {
 		"sub_results": results,
