@@ -1,5 +1,13 @@
 <template>
 	<div v-if="quiz.data">
+		<!-- 🔥 DEBUG HTML: Confirm code changes are live -->
+		<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+			<strong>🚀 DEBUG: Code Updated!</strong> 
+			Time: {{ new Date().toLocaleTimeString() }} | 
+			Mode: {{ isAllQuestionsMode ? 'All Questions' : 'Sequential' }} |
+			Show Answers: {{ quiz.data.show_answers ? 'ON' : 'OFF' }}
+		</div>
+		
 		<div
 			class="bg-surface-blue-2 space-y-2 py-2 px-3 mb-4 rounded-md text-sm text-ink-blue-2 leading-5"
 		>
@@ -183,9 +191,9 @@
 						</div>
 					</div>
 					
-					<!-- Hiển thị trạng thái câu hỏi sau 4 đáp án - Logic đúng theo quy định 0,1,2 -->
+					<!-- Hiển thị trạng thái câu hỏi sau 4 đáp án - ✅ All-or-Nothing Logic -->
 					<div v-if="showAnswers.length && questionDetails.data.type == 'Choices'" class="mt-4 flex justify-center">
-						<Badge v-if="showAnswers.some(answer => answer === 1) && !showAnswers.some(answer => answer === 0)" label="Correct" theme="green">
+						<Badge v-if="isSequentialQuestionCorrect()" label="Correct" theme="green">
 							<template #prefix>
 								<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
 							</template>
@@ -261,7 +269,27 @@
 									<div class="text-sm font-medium text-ink-gray-8">
 										{{ __('Question') }} {{ subIdx + 1 }}
 									</div>
-									<!-- Bỏ hiển thị điểm vì đã có ở câu chính -->
+									<!-- ✅ Show Correct/Incorrect status for each sub-question -->
+									<div v-if="showSubAnswers[subIdx]">
+										<Badge 
+											v-if="getSequentialSubQuestionStatus(subIdx) === 'correct'" 
+											:label="__('Correct')" 
+											theme="green"
+										>
+											<template #prefix>
+												<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+											</template>
+										</Badge>
+										<Badge 
+											v-else-if="getSequentialSubQuestionStatus(subIdx) === 'incorrect'" 
+											:label="__('Incorrect')" 
+											theme="red"
+										>
+											<template #prefix>
+												<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+											</template>
+										</Badge>
+									</div>
 								</div>
 								
 								<div class="text-ink-gray-9 font-medium mb-3">{{ subQ.question }}</div>
@@ -389,6 +417,8 @@
 						</div>
 						
 						<!-- Hiển thị trạng thái Reading Block sau tất cả sub-questions -->
+						<!-- ✅ Ẩn tổng kết vì đã hiển thị Badge cho từng câu con -->
+						<!-- 
 						<div v-if="currentQuestionResult && questionDetails.data.type == 'Reading Block'" class="mt-6 flex justify-center">
 							<Badge 
 								v-if="currentQuestionResult === 'correct'" 
@@ -418,6 +448,7 @@
 								</template>
 							</Badge>
 						</div>
+						-->
 					</div>
 					<div v-else>
 						<TextEditor
@@ -514,8 +545,8 @@
 										{{ __('Question {0}').format(qtidx + 1) }}
 									</span>
 								</div>
-								<!-- Status badge for each question -->
-								<div v-if="hasQuestionResult(qtidx)" class="flex items-center gap-1">
+								<!-- Status badge for each question (except Reading Block) -->
+								<div v-if="hasQuestionResult(qtidx) && allQuestionsDetails[qtidx]?.type !== 'Reading Block'" class="flex items-center gap-1">
 									<span v-if="getQuestionStatus(qtidx) === 'correct'" 
 										class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
 										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -530,6 +561,34 @@
 										</svg>
 										Incorrect
 									</span>
+								</div>
+								
+								<!-- ✅ Badge for User Input questions - ngang hàng với Question title -->
+								<div v-if="allQuestionsDetails[qtidx]?.type == 'User Input' && shouldShowBadge(qtidx)" class="flex items-center gap-1">
+									<!-- ✅ DEBUG: Log when Badge logic is triggered -->
+									{{ (() => {
+										console.log('🔍 [DEBUG] Badge condition check:', {
+											qtidx,
+											qtidxString: qtidx.toString(),
+											qtidxType: typeof qtidx,
+											shouldShow: shouldShowBadge(qtidx),
+											allShowAnswersValue: allShowAnswers[qtidx.toString()],
+											allShowAnswersKeys: Object.keys(allShowAnswers)
+										})
+										return ''
+									})() }}
+									
+									<!-- ✅ Apply All-or-Nothing logic like Sequential mode -->
+									<Badge v-if="isAllQuestionsQuestionCorrect(qtidx)" label="Correct" theme="green">
+										<template #prefix>
+											<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
+										</template>
+									</Badge>
+									<Badge v-else theme="red" label="Incorrect">
+										<template #prefix>
+											<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
+										</template>
+									</Badge>
 								</div>
 							</div>
 							<div class="text-sm font-medium text-ink-blue-3 bg-surface-blue-1 px-2 py-1 rounded">
@@ -572,16 +631,17 @@
 											/>
 										</div>
 										<div v-else class="w-4 h-4 flex items-center justify-center">
+											<!-- Show icons only if show_answers is true -->
 											<CheckCircle
-												v-if="allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 1"
+												v-if="quiz.data.show_answers && allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 1"
 												class="w-4 h-4 text-ink-green-2"
 											/>
 											<MinusCircle
-												v-else-if="allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 2"
+												v-else-if="quiz.data.show_answers && allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 2"
 												class="w-4 h-4 text-ink-green-2"
 											/>
 											<XCircle
-												v-else-if="allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 0"
+												v-else-if="quiz.data.show_answers && allShowAnswers[qtidx] && allShowAnswers[qtidx][index - 1] == 0"
 												class="w-4 h-4 text-ink-red-3"
 											/>
 											<div v-else class="w-4 h-4"></div>
@@ -616,33 +676,21 @@
 										allQuestionsAnswers[qtidx].possibleAnswer = value
 									}"
 								/>
-								<div v-if="hasShownAnswers && allShowAnswers[qtidx] !== undefined">
-									<Badge v-if="allShowAnswers[qtidx] === 1 || (Array.isArray(allShowAnswers[qtidx]) && allShowAnswers[qtidx][0] === 1)" label="Correct" theme="green">
-										<template #prefix>
-											<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
-										</template>
-									</Badge>
-									<Badge v-else theme="red" label="Incorrect">
-										<template #prefix>
-											<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
-										</template>
-									</Badge>
-									
-									<!-- Show correct answers for User Input -->
-									<div v-if="allQuestionsDetails[qtidx] && hasShownAnswers" class="mt-3 p-3 bg-surface-green-1 border border-ink-green-3 rounded-md">
-										<div class="text-sm font-medium text-ink-green-3 mb-2">{{ __('Possible Correct Answers:') }}</div>
-										<div class="space-y-1">
-											<!-- Try correct_answers from response first -->
-											<div v-if="allQuestionsDetails[qtidx].correct_answers && allQuestionsDetails[qtidx].correct_answers.length > 0">
-												<div v-for="answer in allQuestionsDetails[qtidx].correct_answers" :key="answer" class="text-sm text-ink-green-2">
-													• {{ answer }}
-												</div>
+								
+								<!-- ✅ Show correct answers only when quiz.data.show_answers is true -->
+								<div v-if="quiz.data.show_answers && allQuestionsDetails[qtidx] && hasShownAnswers" class="mt-3 p-3 bg-surface-green-1 border border-ink-green-3 rounded-md">
+									<div class="text-sm font-medium text-ink-green-3 mb-2">{{ __('Possible Correct Answers:') }}</div>
+									<div class="space-y-1">
+										<!-- Try correct_answers from response first -->
+										<div v-if="allQuestionsDetails[qtidx].correct_answers && allQuestionsDetails[qtidx].correct_answers.length > 0">
+											<div v-for="answer in allQuestionsDetails[qtidx].correct_answers" :key="answer" class="text-sm text-ink-green-2">
+												• {{ answer }}
 											</div>
-											<!-- Fallback to possibility fields -->
-											<div v-else>
-												<div v-for="num in 4" :key="num" v-if="allQuestionsDetails[qtidx][`possibility_${num}`]" class="text-sm text-ink-green-2">
-													• {{ allQuestionsDetails[qtidx][`possibility_${num}`] }}
-												</div>
+										</div>
+										<!-- Fallback to possibility fields -->
+										<div v-else>
+											<div v-for="num in 4" :key="num" v-if="allQuestionsDetails[qtidx][`possibility_${num}`]" class="text-sm text-ink-green-2">
+												• {{ allQuestionsDetails[qtidx][`possibility_${num}`] }}
 											</div>
 										</div>
 									</div>
@@ -657,7 +705,19 @@
 											<div class="text-sm font-medium text-ink-gray-8">
 												{{ __('Question') }} {{ subIdx + 1 }}
 											</div>
-											<!-- Bỏ hiển thị điểm vì đã có ở câu chính -->
+											<!-- Show Correct/Incorrect status for each sub-question -->
+											<div v-if="allShowSubAnswers[qtidx] && allShowSubAnswers[qtidx][subIdx]">
+												<Badge 
+													v-if="getSubQuestionStatus(qtidx, subIdx) === 'correct'" 
+													label="Correct" 
+													theme="green"
+												/>
+												<Badge 
+													v-else-if="getSubQuestionStatus(qtidx, subIdx) === 'incorrect'" 
+													label="Incorrect" 
+													theme="red"
+												/>
+											</div>
 										</div>
 										
 										<div class="text-ink-gray-9 font-medium mb-3">{{ subQ.question }}</div>
@@ -666,7 +726,8 @@
 										<div class="space-y-2">
 											<div v-for="optIdx in 4" :key="optIdx">
 												<label v-if="subQ[`option_${optIdx}`]" class="flex items-center bg-surface-gray-3 rounded-md p-3 cursor-pointer hover:bg-surface-gray-4 transition-colors">
-													<div v-if="allShowSubAnswers[qtidx] && allShowSubAnswers[qtidx][subIdx] && (allShowSubAnswers[qtidx][subIdx][optIdx-1] === 1 || allShowSubAnswers[qtidx][subIdx][optIdx-1] === 0 || allShowSubAnswers[qtidx][subIdx][optIdx-1] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
+													<!-- Show icons only if show_answers is true -->
+													<div v-if="quiz.data.show_answers && allShowSubAnswers[qtidx] && allShowSubAnswers[qtidx][subIdx] && (allShowSubAnswers[qtidx][subIdx][optIdx-1] === 1 || allShowSubAnswers[qtidx][subIdx][optIdx-1] === 0 || allShowSubAnswers[qtidx][subIdx][optIdx-1] === 2)" class="w-3.5 h-3.5 flex items-center justify-center">
 														<CheckCircle
 															v-if="allShowSubAnswers[qtidx][subIdx][optIdx-1] == 1"
 															class="w-4 h-4 text-ink-green-2"
@@ -820,7 +881,7 @@ import {
 	FormControl,
 	toast,
 } from 'frappe-ui'
-import { ref, watch, reactive, inject, computed } from 'vue'
+import { ref, watch, reactive, inject, computed, nextTick } from 'vue'
 import { CheckCircle, XCircle, MinusCircle } from 'lucide-vue-next'
 import { timeAgo } from '@/utils'
 import { useRouter } from 'vue-router'
@@ -876,12 +937,42 @@ const hasShownAnswers = computed(() => {
 		// For All Questions mode, check if any answers have been shown
 		const hasShowAnswers = Object.keys(allShowAnswers).length > 0
 		const hasShowSubAnswers = Object.keys(allShowSubAnswers).length > 0
-		return hasShowAnswers || hasShowSubAnswers
+		const result = hasShowAnswers || hasShowSubAnswers
+		
+		console.log('🔍 [DEBUG] hasShownAnswers computed:', {
+			isAllQuestionsMode: isAllQuestionsMode.value,
+			allShowAnswersKeys: Object.keys(allShowAnswers),
+			allShowSubAnswersKeys: Object.keys(allShowSubAnswers),
+			hasShowAnswers,
+			hasShowSubAnswers,
+			result
+		})
+		
+		return result
 	} else {
 		// For Sequential mode, use existing logic
 		return quiz.data?.show_answers && (showAnswers.length > 0 || Object.keys(showSubAnswers).length > 0)
 	}
 })
+
+// ✅ Function để check Badge display cho specific question (NOT computed)
+const shouldShowBadge = (questionIndex) => {
+	const stringKey = questionIndex.toString()
+	const hasData = allShowAnswers[stringKey] !== undefined
+	const result = hasShownAnswers.value && hasData
+	
+	console.log('🔍 [DEBUG] shouldShowBadge function called:', {
+		questionIndex,
+		stringKey,
+		hasShownAnswers: hasShownAnswers.value,
+		hasData,
+		result,
+		allShowAnswersKeys: Object.keys(allShowAnswers),
+		dataValue: allShowAnswers[stringKey]
+	})
+	
+	return result
+}
 
 // Helper methods for question status
 const hasQuestionResult = (questionIndex) => {
@@ -975,6 +1066,26 @@ const getQuestionStatus = (questionIndex) => {
 	return null
 }
 
+// Get status for individual sub-question in Reading Block
+const getSubQuestionStatus = (questionIndex, subQuestionIndex) => {
+	if (!allShowSubAnswers[questionIndex] || !allShowSubAnswers[questionIndex][subQuestionIndex]) {
+		return null
+	}
+	
+	const subResults = allShowSubAnswers[questionIndex][subQuestionIndex]
+	const hasCorrect = subResults.some(val => val === 1)
+	const hasWrong = subResults.some(val => val === 0)
+	
+	// If user got it right (has correct answer and no wrong answers)
+	if (hasCorrect && !hasWrong) {
+		return 'correct'
+	} else if (hasWrong || !hasCorrect) {
+		return 'incorrect'
+	}
+	
+	return null
+}
+
 const props = defineProps({
 	quizName: {
 		type: String,
@@ -1055,6 +1166,113 @@ const formatTimer = (seconds) => {
 const timerProgress = computed(() => {
 	return (timer.value / (quiz.data.duration * 60)) * 100
 })
+
+// ✅ All-or-Nothing logic for Sequential mode
+const isSequentialQuestionCorrect = () => {
+	if (!showAnswers.length) return false
+	
+	// Count different types of answers
+	const correctSelected = showAnswers.filter(answer => answer === 1).length
+	const wrongSelected = showAnswers.filter(answer => answer === 0).length  
+	const missedCorrect = showAnswers.filter(answer => answer === 2).length
+	
+	console.log('🎯 [DEBUG] Sequential check:', {
+		showAnswers: [...showAnswers],
+		correctSelected,
+		wrongSelected, 
+		missedCorrect
+	})
+	
+	// All-or-Nothing: Perfect score required
+	return wrongSelected === 0 && missedCorrect === 0 && correctSelected > 0
+}
+
+// ✅ Get status for individual sub-question in Sequential mode (Reading Block)
+const getSequentialSubQuestionStatus = (subQuestionIndex) => {
+	if (!showSubAnswers[subQuestionIndex]) {
+		return null
+	}
+	
+	const subResults = showSubAnswers[subQuestionIndex]
+	const hasCorrect = subResults.some(val => val === 1)
+	const hasWrong = subResults.some(val => val === 0)
+	const hasMissed = subResults.some(val => val === 2)
+	
+	console.log('🎯 [DEBUG] Sequential sub-question check:', {
+		subQuestionIndex,
+		subResults: [...subResults],
+		hasCorrect,
+		hasWrong,
+		hasMissed
+	})
+	
+	// All-or-Nothing logic for sub-questions
+	if (hasCorrect && !hasWrong && !hasMissed) {
+		return 'correct'
+	} else if (hasWrong || hasMissed || !hasCorrect) {
+		return 'incorrect'
+	}
+	
+	return null
+}
+
+// ✅ UNIFIED All-or-Nothing logic for All Questions mode - reuse Sequential logic!
+const isAllQuestionsQuestionCorrect = (questionIndex) => {
+	// ✅ Use string key consistently to match Object.keys() behavior
+	const answers = allShowAnswers[questionIndex.toString()]
+	
+	console.log('🔍 [DEBUG] isAllQuestionsQuestionCorrect called:', {
+		questionIndex,
+		questionIndexString: questionIndex.toString(),
+		questionIndexType: typeof questionIndex,
+		answers,
+		answerType: typeof answers,
+		isArray: Array.isArray(answers),
+		allShowAnswersKeys: Object.keys(allShowAnswers)
+	})
+	
+	if (!answers) {
+		console.log('🔍 [DEBUG] No answers found, returning false')
+		return false
+	}
+	
+	// Single answer questions - simple check
+	if (!Array.isArray(answers)) {
+		const result = answers === 1
+		console.log('🔍 [DEBUG] Single answer result:', result)
+		return result
+	}
+	
+	// ✅ Multiple choice - reuse SAME logic as Sequential mode
+	const correctSelected = answers.filter(answer => answer === 1).length
+	const wrongSelected = answers.filter(answer => answer === 0).length  
+	const missedCorrect = answers.filter(answer => answer === 2).length
+	
+	console.log('🎯 [DEBUG] All Questions check (using Sequential logic):', {
+		questionIndex,
+		answers: [...answers],
+		correctSelected,
+		wrongSelected, 
+		missedCorrect,
+		detailedAnswers: answers.map((ans, idx) => `[${idx}]=${ans}`).join(', ')
+	})
+	
+	// ✅ SAME All-or-Nothing logic as Sequential
+	const result = wrongSelected === 0 && missedCorrect === 0 && correctSelected > 0
+	
+	console.log('🔥 [DEBUG] All-or-Nothing calculation:', {
+		wrongSelected,
+		'wrongSelected === 0': wrongSelected === 0,
+		missedCorrect, 
+		'missedCorrect === 0': missedCorrect === 0,
+		correctSelected,
+		'correctSelected > 0': correctSelected > 0,
+		'Final result': result
+	})
+	
+	console.log('🎯 [DEBUG] All Questions final result:', result)
+	return result
+}
 
 // Computed property để kiểm tra câu hỏi hiện tại đúng hay sai
 const currentQuestionResult = computed(() => {
@@ -1180,7 +1398,12 @@ const questionDetails = createResource({
 })
 
 watch(activeQuestion, (value) => {
-	if (value > 0) {
+	if (
+		value > 0 &&
+		quiz.data &&
+		Array.isArray(quiz.data.questions) &&
+		quiz.data.questions[value - 1]
+	) {
 		currentQuestion.value = quiz.data.questions[value - 1].question
 		questionDetails.reload()
 	}
@@ -1288,15 +1511,11 @@ const checkAnswer = () => {
 			if (type == 'Choices') {
 				// Reset showAnswers trước khi xử lý kết quả mới
 				showAnswers.length = 0
-				selectedOptions.forEach((option, index) => {
-					if (option) {
-						showAnswers[index] = option && data[index]
-					} else if (data[index] == 2) {
-						showAnswers[index] = 2
-					} else {
-						showAnswers[index] = undefined
-					}
-				})
+				// ✅ FIXED: Trust backend completely - no frontend logic override
+				// Backend returns: 1=correct, 0=wrong, 2=missed correct answer
+				for (let index = 0; index < 4; index++) {
+					showAnswers[index] = data[index] !== undefined ? data[index] : undefined
+				}
 			} else if (type == 'Reading Block') {
 				// Handle Reading Block results - convert to simple format like Choices
 				if (data && data.sub_results) {
@@ -1355,15 +1574,44 @@ const checkAnswer = () => {
 
 const addToLocalStorage = () => {
 	let quizData = JSON.parse(localStorage.getItem(quiz.data.title))
+	
+	// ✅ DEBUG: Log what we're about to save
+	console.log('🔍 [DEBUG] addToLocalStorage showAnswers:', showAnswers)
+	console.log('🔍 [DEBUG] addToLocalStorage showAnswers type:', typeof showAnswers, Array.isArray(showAnswers))
+	
+	// ✅ For Sequential mode, store complete answer details like All Questions mode
+	let selectedAnswerTexts = getAnswers() // Get selected answer texts
+	let answerDetails = []
+	
+	if (questionDetails.data.type === 'Choices') {
+		// Convert selectedOptions to answer format that includes option_index
+		selectedOptions.forEach((selected, index) => {
+			if (selected) {
+				answerDetails.push({
+					option: questionDetails.data[`option_${index + 1}`],
+					option_index: index
+				})
+			}
+		})
+	} else {
+		// For other types, use the text format
+		answerDetails = selectedAnswerTexts
+	}
+	
 	let questionData = {
 		question_name: currentQuestion.value,
-		answer: getAnswers().join(),
-		is_correct: showAnswers.filter((answer) => {
-			return answer != undefined
-		}),
+		answer: JSON.stringify(answerDetails), // Store as JSON like All Questions mode
+		is_correct: [...showAnswers], // ✅ Create a copy to avoid reference issues
 	}
+	
+	console.log('🔍 [DEBUG] questionData before save:', questionData)
+	
 	quizData ? quizData.push(questionData) : (quizData = [questionData])
 	localStorage.setItem(quiz.data.title, JSON.stringify(quizData))
+	
+	// ✅ DEBUG: Verify what was actually saved
+	const saved = JSON.parse(localStorage.getItem(quiz.data.title))
+	console.log('🔍 [DEBUG] localStorage after save:', saved)
 }
 
 const nextQuestion = () => {
@@ -1559,6 +1807,11 @@ const loadAllQuestionsDetails = async () => {
 }
 
 const submitAllQuestions = async () => {
+	// 🔥 DEBUG: Confirm function is called
+	console.log('🎯 [DEBUG] submitAllQuestions() called at:', new Date().toLocaleTimeString())
+	console.log('🎯 [DEBUG] quiz.data.show_answers:', quiz.data.show_answers)
+	console.log('🎯 [DEBUG] questions.length:', questions.length)
+	
 	// Validate all questions are answered
 	for (let i = 0; i < questions.length; i++) {
 		const answer = allQuestionsAnswers[i]
@@ -1587,30 +1840,33 @@ const submitAllQuestions = async () => {
 		}
 	}
 	
-	// Check if should show answers immediately
-	if (quiz.data.show_answers) {
-		// Submit all answers and show results immediately
-		for (let i = 0; i < questions.length; i++) {
-			await checkAllQuestionAnswer(i)
-			// Add to localStorage like Sequential mode
-			addAllQuestionToLocalStorage(i)
-		}
-		// Create submission to get the score but don't redirect to summary
-		await createSubmissionAsync()
-	} else {
-		// Just save answers to localStorage without showing results
-		for (let i = 0; i < questions.length; i++) {
-			addAllQuestionToLocalStorage(i)
-		}
-		// Create submission immediately since no answers to review
-		await createSubmissionAsync()
+	// ✅ FIXED: Always check answers to get correct/incorrect results
+	// show_answers only controls whether to display icons, not whether to check
+	console.log('🎯 [DEBUG] Starting answer checking loop...')
+	for (let i = 0; i < questions.length; i++) {
+		console.log(`🎯 [DEBUG] Checking question ${i} - always get results`)
+		// Always check answers to get [0,1,1,1] results for correct/incorrect logic
+		await checkAllQuestionAnswer(i)
+		
+		// Add to localStorage for final submission
+		console.log(`🎯 [DEBUG] Adding question ${i} to localStorage`)
+		addAllQuestionToLocalStorage(i)
 	}
+	// Create submission to get the score
+	console.log('🎯 [DEBUG] Creating submission...')
+	await createSubmissionAsync()
+	console.log('🎯 [DEBUG] submitAllQuestions() completed!')
 }
 
-const checkAllQuestionAnswer = async (questionIndex) => {
+// ✅ NEW: Check answer without storing UI display results (for show_answers = false)
+const checkAllQuestionAnswerNoDisplay = async (questionIndex) => {
+	console.log(`🔍 [DEBUG] checkAllQuestionAnswerNoDisplay(${questionIndex}) called`)
 	const answer = allQuestionsAnswers[questionIndex]
 	const questionDetails = allQuestionsDetails[questionIndex]
 	const question = questions[questionIndex]
+	
+	console.log(`🔍 [DEBUG] Question ${questionIndex} type:`, questionDetails.type)
+	console.log(`🔍 [DEBUG] Question ${questionIndex} answer:`, answer)
 	
 	let answers = []
 	
@@ -1643,22 +1899,105 @@ const checkAllQuestionAnswer = async (questionIndex) => {
 	}
 	
 	try {
+		// Only validate - don't store results for UI
+		await call('lms.lms.doctype.lms_quiz.lms_quiz.check_answer', {
+			question: question.question,
+			type: questionDetails.type,
+			answers: JSON.stringify(answers),
+		})
+		// Results will be handled by backend during final submission
+	} catch (error) {
+		console.error('Error checking question:', error)
+	}
+}
+
+const checkAllQuestionAnswer = async (questionIndex) => {
+	console.log(`🔍 [DEBUG] checkAllQuestionAnswer(${questionIndex}) called`)
+	const answer = allQuestionsAnswers[questionIndex]
+	const questionDetails = allQuestionsDetails[questionIndex]
+	const question = questions[questionIndex]
+	
+	console.log(`🔍 [DEBUG] Question ${questionIndex} type:`, questionDetails.type)
+	console.log(`🔍 [DEBUG] Question ${questionIndex} answer:`, answer)
+	
+	let answers = []
+	
+	if (questionDetails.type === 'Choices') {
+		answer.selectedOptions.forEach((option, index) => {
+			if (option) {
+				answers.push({
+					option: questionDetails[`option_${index + 1}`],
+					option_index: index,
+				})
+			}
+		})
+	} else if (questionDetails.type === 'User Input') {
+		answers.push({
+			answer: answer.possibleAnswer,
+		})
+	} else if (questionDetails.type === 'Reading Block') {
+		Object.keys(answer.selectedSubOptions).forEach(subIdx => {
+			const subOptions = answer.selectedSubOptions[subIdx]
+			subOptions.forEach((option, optionIdx) => {
+				if (option) {
+					answers.push({
+						sub_question_index: parseInt(subIdx),
+						option: questionDetails.sub_questions[subIdx][`option_${optionIdx + 1}`],
+						option_index: optionIdx,
+					})
+				}
+			})
+		})
+	}
+	
+	try {
+		console.log('🔍 [DEBUG] Calling check_answer API...', {
+			questionIndex,
+			question: question.question,
+			type: questionDetails.type,
+			answers
+		})
+		
 		const response = await call('lms.lms.doctype.lms_quiz.lms_quiz.check_answer', {
 			question: question.question,
 			type: questionDetails.type,
 			answers: JSON.stringify(answers),
 		})
 		
+		console.log('🔍 [DEBUG] API Response:', {
+			questionIndex,
+			response,
+			responseType: typeof response
+		})
+		
 		if (questionDetails.type === 'Choices') {
-			allShowAnswers[questionIndex] = []
-			answer.selectedOptions.forEach((option, index) => {
-				if (option) {
-					allShowAnswers[questionIndex][index] = option && response[index]
-				} else if (response[index] == 2) {
-					allShowAnswers[questionIndex][index] = 2
-				} else {
-					allShowAnswers[questionIndex][index] = undefined
-				}
+			// ✅ FIXED: Trust backend completely for All Questions mode too
+			// ✅ Force proper Vue reactivity by setting array directly to reactive object
+			const processedAnswers = []
+			for (let index = 0; index < 4; index++) {
+				// ✅ Keep exact values from backend - don't convert 0 or null to undefined!
+				processedAnswers[index] = response[index]
+			}
+			
+			// ✅ Use string key to match Object.keys() behavior
+			allShowAnswers[questionIndex.toString()] = processedAnswers
+			
+			console.log('🔍 [DEBUG] Set allShowAnswers for Choices:', {
+				questionIndex,
+				stringKey: questionIndex.toString(),
+				response,
+				processedAnswers,
+				allShowAnswers: allShowAnswers[questionIndex.toString()],
+				allShowAnswersKeys: Object.keys(allShowAnswers)
+			})
+			
+			// ✅ Force Vue to recognize the change
+			nextTick(() => {
+				console.log('🔍 [DEBUG] After nextTick - allShowAnswers updated:', {
+					questionIndex,
+					hasData: allShowAnswers[questionIndex.toString()] !== undefined,
+					allShowAnswersKeys: Object.keys(allShowAnswers)
+				})
 			})
 		} else if (questionDetails.type === 'User Input') {
 			// Handle new User Input response format

@@ -101,6 +101,9 @@ def set_total_marks(questions):
 def quiz_summary(quiz, results):
 
 	results = results and json.loads(results)
+	
+	# ✅ DEBUG: Log what we receive from frontend
+	print(f"🔍 [DEBUG] quiz_summary received results: {results}")
 
 	if results and len(results) > 0:
 
@@ -338,8 +341,8 @@ def convert_all_questions_to_standard_format(all_questions_results, quiz_name):
 								check_result = check_answer(question_id, "Choices", json.dumps(answers))
 								
 								if isinstance(check_result, list):
-									# check_choice_answers returns [1,0,0,0] format
-									is_correct = [1 in check_result]
+									# ✅ Keep the detailed result format [1,1,0,None]
+									is_correct = check_result
 								else:
 									is_correct = [False]
 							else:
@@ -377,8 +380,8 @@ def convert_all_questions_to_standard_format(all_questions_results, quiz_name):
 						
 						# check_choice_answers returns array like [1, 0, 0, 0] where 1=correct, 2=wrong, 0=not selected
 						if isinstance(check_result, list):
-							# Check if any option is correct (value = 1)
-							is_correct = [1 in check_result]
+							# ✅ Keep the detailed result format
+							is_correct = check_result
 						elif isinstance(check_result, dict):
 							is_correct = check_result.get("is_correct", [False])
 						else:
@@ -492,7 +495,10 @@ def convert_all_questions_to_standard_format(all_questions_results, quiz_name):
 				# Check answer using existing function
 				check_result = check_answer(question_id, "Choices", json.dumps(answers))
 				
-				if isinstance(check_result, dict):
+				if isinstance(check_result, list):
+					# ✅ Keep the detailed result format for proper scoring
+					result["is_correct"] = check_result
+				elif isinstance(check_result, dict):
 					result["is_correct"] = check_result.get("is_correct", [False])
 				else:
 					result["is_correct"] = [check_result] if isinstance(check_result, bool) else [False]
@@ -553,20 +559,66 @@ def process_results(results, quiz_details):
 			
 			correct = False  # Initialize correct variable
 			if len(result["is_correct"]) > 0:
-				# For Choices questions, check if any option is correct (value = 1)
-				# result["is_correct"] could be [1, 0, 0, 0] or [1] depending on format
+				# For Choices questions, check scoring strategy
 				if isinstance(result["is_correct"][0], bool):
 					# Boolean format: [True] or [False]
 					correct = result["is_correct"][0]
-				elif isinstance(result["is_correct"][0], int):
-					# Integer format: [1] (correct) or [0] (incorrect) for single answer
-					# Or [1, 0, 0, 0] for multiple choice where 1=correct, 0=not selected, 2=wrong
+				elif isinstance(result["is_correct"][0], int) or result["is_correct"][0] is None:
+					# Multiple choice format: [1, 0, 2, None] OR [1, 0, 2] (filtered)
 					if len(result["is_correct"]) == 1:
 						# Single boolean result: [1] or [0]
 						correct = bool(result["is_correct"][0])
 					else:
-						# Multiple choice result: [1, 0, 0, 0] - check if any is 1
-						correct = 1 in result["is_correct"]
+						# Multiple choice result: check for perfect score
+						# Handle both formats: with None ([1,1,0,None]) and without None ([1,1,0])
+						correct_selected = result["is_correct"].count(1)
+						wrong_selected = result["is_correct"].count(0)
+						missed_correct = result["is_correct"].count(2)
+						
+						print(f"  correct_selected: {correct_selected}, wrong_selected: {wrong_selected}, missed_correct: {missed_correct}")
+						
+						# For Sequential mode: if no 2s in array, need to calculate missed answers
+						if missed_correct == 0 and len(result["is_correct"]) < 4:
+							# This might be Sequential mode with filtered results
+							# Get question details to check total correct answers
+							question_doc = frappe.get_doc("LMS Question", result["question_name"])
+							total_correct_options = sum([
+								getattr(question_doc, f"is_correct_{i}", 0) for i in range(1, 5)
+							])
+							if correct_selected < total_correct_options:
+								missed_correct = total_correct_options - correct_selected
+								print(f"  ⚠️ Sequential mode detected: adjusted missed_correct to {missed_correct}")
+						
+						# ✅ ADDITIONAL FIX: For Sequential mode, if we have 2s but still missing info
+						elif missed_correct > 0 and len(result["is_correct"]) < 4:
+							# Sequential mode with partial data - check if user actually answered all correctly selected options
+							# For this case: [2, 1] means user missed option 1 (2) but got option 2 (1)
+							# The missing 0s for wrong selections need to be inferred
+							question_doc = frappe.get_doc("LMS Question", result["question_name"])
+							total_correct_options = sum([
+								getattr(question_doc, f"is_correct_{i}", 0) for i in range(1, 5)
+							])
+							
+							# If we have missed (2) + correct (1) but total is higher, means user selected wrong options too
+							accounted_selections = correct_selected + missed_correct
+							if accounted_selections < len(result["is_correct"]):
+								# There are more values in is_correct than accounted for - those must be wrong selections
+								additional_values = len(result["is_correct"]) - accounted_selections
+								wrong_selected += additional_values
+								print(f"  ⚠️ Sequential mode: found {additional_values} additional wrong selections")
+						
+						print(f"  📊 Final counts: correct={correct_selected}, wrong={wrong_selected}, missed={missed_correct}")
+						
+						# Strategy: All-or-Nothing (perfect score required)
+						if wrong_selected == 0 and missed_correct == 0 and correct_selected > 0:
+							correct = True
+							print(f"  ✅ Perfect score: All correct, no wrong, no missed")
+						else:
+							correct = False
+							if wrong_selected > 0:
+								print(f"  ❌ Has wrong selections: {wrong_selected}")
+							if missed_correct > 0:
+								print(f"  ⊖ Has missed correct answers: {missed_correct}")
 				else:
 					correct = False
 			else:
@@ -760,17 +812,24 @@ def check_choice_answers(question, answers):
 
 	for num in range(1, 5):
 		option_text = question_details[f"option_{num}"]
-		print(f"Checking option_{num}: '{option_text}'")
+		is_option_correct = question_details[f"is_correct_{num}"]
+		user_selected = option_text in answer_texts
 		
-		if option_text in answer_texts:
-			print(f"  Found in answers -> is_correct_{num} = {question_details[f'is_correct_{num}']}")
-			is_correct.append(question_details[f"is_correct_{num}"])
-		elif question_details[f"is_correct_{num}"]:
-			print(f"  Not selected but should be correct -> 2 (wrong)")
+		print(f"Checking option_{num}: '{option_text}'")
+		print(f"  is_option_correct: {is_option_correct}, user_selected: {user_selected}")
+		
+		if user_selected and is_option_correct:
+			print(f"  ✅ Correctly selected -> 1")
+			is_correct.append(1)
+		elif user_selected and not is_option_correct:
+			print(f"  ❌ Wrongly selected -> 0")
+			is_correct.append(0)
+		elif not user_selected and is_option_correct:
+			print(f"  ⊖ Missed correct answer -> 2")
 			is_correct.append(2)
 		else:
-			print(f"  Not selected and not correct -> 0")
-			is_correct.append(0)
+			print(f"  ⭕ Not selected and not correct -> undefined")
+			is_correct.append(None)
 
 	print(f"Final is_correct result: {is_correct}")
 	return is_correct
