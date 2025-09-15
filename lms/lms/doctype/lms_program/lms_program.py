@@ -96,8 +96,8 @@ class LMSProgram(Document):
 			# Get course title  
 			course_title = frappe.db.get_value("LMS Course", course_name, "title") or course_name
 			
-			subject = f"Auto-enrolled in Course: {course_title}"
-			message = f"You have been automatically enrolled in the course '{course_title}' through the program '{self.title}'."
+			subject = _("Auto-enrolled in Course: {0}").format(course_title)
+			message = _("You have been automatically enrolled in the course '{course}' through the program '{program}'.").format(course=course_title, program=self.title)
 			
 			# Use same format as LMS Quiz Submission
 			notification = frappe._dict({

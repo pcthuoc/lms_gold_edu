@@ -59,21 +59,21 @@ export default defineConfig({
 			},
 		}),
 	],
-	server: {
-	    host: '0.0.0.0',
-	    allowedHosts: ['ps', 'fs'],
-	    proxy: {
-	      '/api': {
-	        target: 'http://128.199.244.163:8000',
-	        changeOrigin: true,
-	        secure: false,
-	      }
-	    }
-	},
 	// server: {
-	// 	host: '0.0.0.0', // Accept connections from any network interface
-	// 	allowedHosts: ['ps', 'fs', 'home'], // Explicitly allow this host
+	//     host: '0.0.0.0',
+	//     allowedHosts: ['ps', 'fs'],
+	//     proxy: {
+	//       '/api': {
+	//         target: 'http://128.199.244.163:8000',
+	//         changeOrigin: true,
+	//         secure: false,
+	//       }
+	//     }
 	// },
+	server: {
+		host: '0.0.0.0', // Accept connections from any network interface
+		allowedHosts: ['ps', 'fs', 'home'], // Explicitly allow this host
+	},
 	resolve: {
 		alias: {
 			'@': path.resolve(__dirname, 'src'),

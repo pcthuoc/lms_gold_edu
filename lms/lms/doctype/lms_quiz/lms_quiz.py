@@ -544,7 +544,22 @@ def process_results(results, quiz_details):
 			if "reading_block_results" in result:
 				rb_results = result["reading_block_results"]
 				score_ratio = rb_results.get("score_ratio", 0)
-				marks = question_details.marks * score_ratio
+				total_correct = rb_results.get("total_correct", 0)
+				total_questions = rb_results.get("total_questions", 1)
+				
+				# DEBUG: Log detailed scoring info
+				frappe.log_error(f"""
+				Reading Block Scoring Debug:
+				- Question: {question_details.question}
+				- Total Correct: {total_correct}
+				- Total Questions: {total_questions}
+				- Score Ratio: {score_ratio}
+				- Question Max Marks: {question_details.marks}
+				- Calculated Marks: {question_details.marks * score_ratio}
+				""", "Reading Block Debug")
+				
+				# ✅ Ensure score doesn't exceed maximum marks allocated
+				marks = min(question_details.marks * score_ratio, question_details.marks)
 				result["marks"] = marks
 				result["is_correct"] = rb_results.get("total_correct", 0) == rb_results.get("total_questions", 1)
 				score += marks
@@ -882,6 +897,15 @@ def check_reading_block_answers(question, answers):
 	
 	total_questions = len(sub_questions)
 	score_ratio = correct_count / total_questions if total_questions > 0 else 0
+	
+	# ✅ Debug logging for score calculation issues
+	frappe.logger().info(f"Reading Block Debug: question={question}")
+	frappe.logger().info(f"  - Total sub-questions: {total_questions}")
+	frappe.logger().info(f"  - Correct answers: {correct_count}")
+	frappe.logger().info(f"  - Score ratio: {score_ratio}")
+	
+	# ✅ Ensure ratio never exceeds 1.0 
+	score_ratio = min(score_ratio, 1.0)
 	
 	return {
 		"sub_results": results,

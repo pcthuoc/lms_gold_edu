@@ -185,12 +185,12 @@
 					
 					<!-- Hiển thị trạng thái câu hỏi sau 4 đáp án - ✅ All-or-Nothing Logic -->
 					<div v-if="showAnswers.length && questionDetails.data.type == 'Choices'" class="mt-4 flex justify-center">
-						<Badge v-if="isSequentialQuestionCorrect()" label="Correct" theme="green">
+					<Badge v-if="isSequentialQuestionCorrect()" :label="__('Correct')" theme="green">
 							<template #prefix>
 								<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
 							</template>
 						</Badge>
-						<Badge v-else label="Incorrect" theme="red">
+					<Badge v-else :label="__('Incorrect')" theme="red">
 							<template #prefix>
 								<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
 							</template>
@@ -208,12 +208,12 @@
 						<div v-if="showAnswers.length">
 							<!-- Logic cho mode hiển thị đáp án: showAnswers[0] là object -->
 							<div v-if="quiz.data.show_answers && typeof showAnswers[0] === 'object'">
-								<Badge v-if="showAnswers[0].is_correct" label="Correct" theme="green">
+							<Badge v-if="showAnswers[0].is_correct" :label="__('Correct')" theme="green">
 									<template #prefix>
 										<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
 									</template>
 								</Badge>
-								<Badge v-else theme="red" label="Incorrect">
+							<Badge v-else theme="red" :label="__('Incorrect')">
 									<template #prefix>
 										<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
 									</template>
@@ -231,12 +231,12 @@
 							</div>
 							
 							<div v-else>
-								<Badge v-if="showAnswers[0]" label="Correct" theme="green">
+							<Badge v-if="showAnswers[0]" :label="__('Correct')" theme="green">
 									<template #prefix>
 										<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
 									</template>
 								</Badge>
-								<Badge v-else theme="red" label="Incorrect">
+							<Badge v-else theme="red" :label="__('Incorrect')">
 									<template #prefix>
 										<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
 									</template>
@@ -260,7 +260,7 @@
 									<div class="text-sm font-medium text-ink-gray-8">
 										{{ __('Question') }} {{ subIdx + 1 }}
 									</div>
-									<!-- ✅ Show Correct/Incorrect status for each sub-question -->
+								<!-- ✅ Show Correct/Incorrect status for each sub-question -->
 									<div v-if="showSubAnswers[subIdx]">
 										<Badge 
 											v-if="getSequentialSubQuestionStatus(subIdx) === 'correct'" 
@@ -542,24 +542,24 @@
 										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
 										</svg>
-										Correct
+										{{ __('Correct') }}
 									</span>
 									<span v-else-if="getQuestionStatus(qtidx) === 'incorrect'" 
 										class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
 										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 											<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
 										</svg>
-										Incorrect
+										{{ __('Incorrect') }}
 									</span>
 								</div>
 								
 								<div v-if="allQuestionsDetails[qtidx]?.type == 'User Input' && shouldShowBadge(qtidx)" class="flex items-center gap-1">
-									<Badge v-if="isAllQuestionsQuestionCorrect(qtidx)" label="Correct" theme="green">
+									<Badge v-if="isAllQuestionsQuestionCorrect(qtidx)" :label="__('Correct')" theme="green">
 										<template #prefix>
 											<CheckCircle class="w-4 h-4 text-ink-green-2 mr-1" />
 										</template>
 									</Badge>
-									<Badge v-else theme="red" label="Incorrect">
+									<Badge v-else theme="red" :label="__('Incorrect')">
 										<template #prefix>
 											<XCircle class="w-4 h-4 text-ink-red-3 mr-1" />
 										</template>
@@ -684,12 +684,12 @@
 											<div v-if="allShowSubAnswers[qtidx] && allShowSubAnswers[qtidx][subIdx]">
 												<Badge 
 													v-if="getSubQuestionStatus(qtidx, subIdx) === 'correct'" 
-													label="Correct" 
+													:label="__('Correct')" 
 													theme="green"
 												/>
 												<Badge 
 													v-else-if="getSubQuestionStatus(qtidx, subIdx) === 'incorrect'" 
-													label="Incorrect" 
+													:label="__('Incorrect')" 
 													theme="red"
 												/>
 											</div>
@@ -1193,8 +1193,14 @@ const currentQuestionResult = computed(() => {
 			if (subAnswers && subAnswers.some(answer => answer !== null && answer !== undefined)) {
 				hasAnyAnswer = true
 				totalSubQuestions++
-				// Kiểm tra xem sub-question này có đúng không (có option nào = 1)
-				if (subAnswers.some(answer => answer === 1)) {
+				
+				// ✅ Use same All-or-Nothing logic as getSequentialSubQuestionStatus
+				const hasCorrect = subAnswers.some(val => val === 1)
+				const hasWrong = subAnswers.some(val => val === 0)
+				const hasMissed = subAnswers.some(val => val === 2)
+				
+				// All-or-Nothing: Perfect score required for this sub-question
+				if (hasCorrect && !hasWrong && !hasMissed) {
 					correctSubQuestions++
 				}
 			}

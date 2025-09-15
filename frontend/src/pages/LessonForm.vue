@@ -492,7 +492,7 @@ const breadcrumbs = computed(() => {
 		})
 	}
 	crumbs.push({
-		label: lessonDetails?.data?.lesson ? 'Edit Lesson' : 'Create Lesson',
+		label: lessonDetails?.data?.lesson ? __('Edit Lesson') : __('Create Lesson'),
 		route: {
 			name: 'LessonForm',
 			params: {

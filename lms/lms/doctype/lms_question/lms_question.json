@@ -195,7 +195,7 @@
    "label": "Possible Answer 4"
   },
   {
-   "description": "\u0110o\u1ea1n v\u0103n ho\u1eb7c audio c\u1ee7a b\u00e0i \u0111\u1ecdc hi\u1ec3u",
+   "description": "Text or audio of the reading comprehension passage",
    "fieldname": "sub_questions",
    "fieldtype": "Table",
    "label": "Sub Questions",
