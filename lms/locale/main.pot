@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe LMS VERSION\n"
 "Report-Msgid-Bugs-To: jannat@frappe.io\n"
-"POT-Creation-Date: 2025-09-15 08:27+0000\n"
-"PO-Revision-Date: 2025-09-15 08:27+0000\n"
+"POT-Creation-Date: 2025-09-17 10:40+0000\n"
+"PO-Revision-Date: 2025-09-17 10:40+0000\n"
 "Last-Translator: jannat@frappe.io\n"
 "Language-Team: jannat@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -1088,7 +1088,7 @@ msgstr ""
 msgid "Choose a color for the course card"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1630
+#: frontend/src/components/Quiz.vue:1624
 msgid "Choose all answers that apply"
 msgstr ""
 
@@ -1100,7 +1100,7 @@ msgstr ""
 msgid "Choose an icon"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1631
+#: frontend/src/components/Quiz.vue:1625
 msgid "Choose one answer"
 msgstr ""
 
@@ -1377,8 +1377,7 @@ msgstr ""
 #: frontend/src/components/Modals/Question.vue:195
 #: frontend/src/components/Quiz.vue:188 frontend/src/components/Quiz.vue:211
 #: frontend/src/components/Quiz.vue:234 frontend/src/components/Quiz.vue:267
-#: frontend/src/components/Quiz.vue:545 frontend/src/components/Quiz.vue:557
-#: frontend/src/components/Quiz.vue:687
+#: frontend/src/components/Quiz.vue:557 frontend/src/components/Quiz.vue:687
 msgid "Correct"
 msgstr ""
 
@@ -1631,10 +1630,6 @@ msgstr ""
 
 #: lms/lms/doctype/lms_certificate_evaluation/lms_certificate_evaluation.js:7
 msgid "Create Certificate"
-msgstr ""
-
-#: frontend/src/pages/LessonForm.vue:495
-msgid "Create Lesson"
 msgstr ""
 
 #: frontend/src/components/Controls/Link.vue:38
@@ -2002,10 +1997,6 @@ msgstr ""
 msgid "Edit Email Template"
 msgstr ""
 
-#: frontend/src/pages/LessonForm.vue:495
-msgid "Edit Lesson"
-msgstr ""
-
 #: frontend/src/pages/Profile.vue:72
 msgid "Edit Profile"
 msgstr ""
@@ -2016,6 +2007,10 @@ msgstr ""
 
 #: frontend/src/pages/QuizForm.vue:208
 msgid "Edit the question"
+msgstr ""
+
+#: frontend/src/components/Modals/EditProfile.vue:4
+msgid "Edit your profile"
 msgstr ""
 
 #. Label of the education (Table) field in DocType 'User'
@@ -2759,7 +2754,7 @@ msgstr ""
 msgid "Image search powered by"
 msgstr ""
 
-#: lms/lms/doctype/lms_quiz/lms_quiz.py:691
+#: lms/lms/doctype/lms_quiz/lms_quiz.py:676
 msgid "Image: Corrupted Data Stream"
 msgstr ""
 
@@ -2791,8 +2786,7 @@ msgstr ""
 
 #: frontend/src/components/Quiz.vue:193 frontend/src/components/Quiz.vue:216
 #: frontend/src/components/Quiz.vue:239 frontend/src/components/Quiz.vue:276
-#: frontend/src/components/Quiz.vue:552 frontend/src/components/Quiz.vue:562
-#: frontend/src/components/Quiz.vue:692
+#: frontend/src/components/Quiz.vue:562 frontend/src/components/Quiz.vue:692
 msgid "Incorrect"
 msgstr ""
 
@@ -3421,10 +3415,22 @@ msgstr ""
 msgid "Location Preference"
 msgstr ""
 
+#: frontend/src/components/UserDropdown.vue:211
+msgid "Log in"
+msgstr ""
+
+#: frontend/src/components/UserDropdown.vue:199
+msgid "Log out"
+msgstr ""
+
 #: frontend/src/components/NoPermission.vue:28
 #: frontend/src/components/QuizBlock.vue:9 frontend/src/pages/Batch.vue:196
 #: frontend/src/pages/Lesson.vue:58
 msgid "Login"
+msgstr ""
+
+#: frontend/src/components/UserDropdown.vue:171
+msgid "Login to Frappe Cloud"
 msgstr ""
 
 #: frontend/src/components/UserDropdown.vue:174
@@ -3826,6 +3832,10 @@ msgstr ""
 
 #: frontend/src/components/Notes/Notes.vue:3
 msgid "My Notes"
+msgstr ""
+
+#: frontend/src/components/UserDropdown.vue:133
+msgid "My Profile"
 msgstr ""
 
 #: frontend/src/pages/ProfileEvaluator.vue:4
@@ -4385,6 +4395,10 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
+#: frontend/src/pages/Profile.vue:214
+msgid "People"
+msgstr ""
+
 #. Label of the percentage (Int) field in DocType 'LMS Quiz Submission'
 #: frontend/src/pages/QuizSubmission.vue:44
 #: frontend/src/pages/QuizSubmissionList.vue:102
@@ -4423,15 +4437,15 @@ msgstr ""
 msgid "Please add a zoom account to the batch to create live classes."
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1729
+#: frontend/src/components/Quiz.vue:1723
 msgid "Please answer all sub-questions in question {0}"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1404
+#: frontend/src/components/Quiz.vue:1398
 msgid "Please answer all {0} sub-questions. You have {1} unanswered questions remaining."
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1716 frontend/src/components/Quiz.vue:1721
+#: frontend/src/components/Quiz.vue:1710 frontend/src/components/Quiz.vue:1715
 msgid "Please answer question {0}"
 msgstr ""
 
@@ -4541,7 +4555,7 @@ msgstr ""
 msgid "Please select a timezone."
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1388
+#: frontend/src/components/Quiz.vue:1382
 msgid "Please select an option"
 msgstr ""
 
@@ -5196,6 +5210,7 @@ msgstr ""
 #: frontend/src/components/Controls/Code.vue:24
 #: frontend/src/components/Controls/CodeEditor.vue:25
 #: frontend/src/components/Modals/AssignmentForm.vue:59
+#: frontend/src/components/Modals/EditProfile.vue:8
 #: frontend/src/components/Modals/EmailTemplateModal.vue:12
 #: frontend/src/components/Modals/Event.vue:101
 #: frontend/src/components/Modals/Event.vue:129
@@ -5350,6 +5365,7 @@ msgstr ""
 
 #: frontend/src/components/AppSidebar.vue:591
 #: frontend/src/components/Settings/Settings.vue:7
+#: frontend/src/components/UserDropdown.vue:161
 #: frontend/src/pages/BatchForm.vue:53 frontend/src/pages/CourseForm.vue:142
 #: frontend/src/pages/ProfileRoles.vue:4 frontend/src/pages/QuizForm.vue:95
 msgid "Settings"
@@ -6121,6 +6137,10 @@ msgstr ""
 msgid "To join this batch, please contact the Administrator."
 msgstr ""
 
+#: frontend/src/components/UserDropdown.vue:143
+msgid "Toggle Theme"
+msgstr ""
+
 #: lms/lms/user.py:41
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr ""
@@ -6183,7 +6203,7 @@ msgstr ""
 msgid "Type '/' for commands or select text to format"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1632
+#: frontend/src/components/Quiz.vue:1626
 msgid "Type your answer"
 msgstr ""
 
@@ -6289,7 +6309,12 @@ msgstr ""
 msgid "Upload File"
 msgstr ""
 
+#: frontend/src/components/Modals/EditProfile.vue:29
+msgid "Upload a profile image"
+msgstr ""
+
 #: frontend/src/components/Assignment.vue:80
+#: frontend/src/components/Modals/EditProfile.vue:28
 msgid "Uploading {0}%"
 msgstr ""
 

@@ -37,6 +37,7 @@
 					<component
 						v-if="activeTab.template"
 						:is="activeTab.template"
+						v-model:show="show"
 						v-bind="{
 							label: activeTab.label,
 							description: activeTab.description,
@@ -107,13 +108,6 @@ const tabsStructure = computed(() => {
 							name: 'allow_guest_access',
 							description:
 								'If enabled, users can access the course and batch lists without logging in.',
-							type: 'checkbox',
-						},
-						{
-							label: 'Enable Learning Paths',
-							name: 'enable_learning_paths',
-							description:
-								'This will ensure students follow the assigned programs in order.',
 							type: 'checkbox',
 						},
 						{
@@ -273,11 +267,15 @@ const tabsStructure = computed(() => {
 							label: 'Logo',
 							name: 'banner_image',
 							type: 'Upload',
+							description:
+								'Appears in the top left corner of the application to represent your brand.',
 						},
 						{
 							label: 'Favicon',
 							name: 'favicon',
 							type: 'Upload',
+							description:
+								'Appears in the browser tab next to the page title, bookmarks, and shortcuts to help users quickly identify the application.',
 						},
 					],
 				},
@@ -294,6 +292,11 @@ const tabsStructure = computed(() => {
 						{
 							label: 'Batches',
 							name: 'batches',
+							type: 'checkbox',
+						},
+						{
+							label: 'Programming Exercises',
+							name: 'programming_exercises',
 							type: 'checkbox',
 						},
 						{

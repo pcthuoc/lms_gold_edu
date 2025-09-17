@@ -542,14 +542,14 @@
 										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
 										</svg>
-										{{ __('Correct') }}
+										Correct
 									</span>
 									<span v-else-if="getQuestionStatus(qtidx) === 'incorrect'" 
 										class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
 										<svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
 											<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
 										</svg>
-										{{ __('Incorrect') }}
+										Incorrect
 									</span>
 								</div>
 								
@@ -1193,14 +1193,8 @@ const currentQuestionResult = computed(() => {
 			if (subAnswers && subAnswers.some(answer => answer !== null && answer !== undefined)) {
 				hasAnyAnswer = true
 				totalSubQuestions++
-				
-				// ✅ Use same All-or-Nothing logic as getSequentialSubQuestionStatus
-				const hasCorrect = subAnswers.some(val => val === 1)
-				const hasWrong = subAnswers.some(val => val === 0)
-				const hasMissed = subAnswers.some(val => val === 2)
-				
-				// All-or-Nothing: Perfect score required for this sub-question
-				if (hasCorrect && !hasWrong && !hasMissed) {
+				// Kiểm tra xem sub-question này có đúng không (có option nào = 1)
+				if (subAnswers.some(answer => answer === 1)) {
 					correctSubQuestions++
 				}
 			}

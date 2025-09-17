@@ -230,3 +230,5 @@ def show_custom_signup():
 	if settings.custom_signup_content or settings.user_category:
 		return "lms/templates/signup-form.html"
 	return "frappe/templates/signup.html"
+
+description: __('https://docs.frappe.io/learning/falcon-self-hosting-guide'),

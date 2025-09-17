@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  frappe\n"
 "Report-Msgid-Bugs-To: jannat@frappe.io\n"
-"POT-Creation-Date: 2025-09-15 08:27+0000\n"
+"POT-Creation-Date: 2025-09-17 10:40+0000\n"
 "PO-Revision-Date: 2025-08-12 01:18+0000\n"
 "Last-Translator: jannat@frappe.io\n"
 "Language: vi_VN\n"
@@ -81,7 +81,7 @@ msgstr "Giới thiệu 1 dòng để xuất hiện trong tiêu đề khóa học
 
 #: frontend/src/pages/ProfileAbout.vue:4
 msgid "About"
-msgstr ""
+msgstr "Giới thiệu"
 
 #: frontend/src/pages/CourseForm.vue:179
 msgid "About the Course"
@@ -140,7 +140,7 @@ msgstr ""
 #: frontend/src/pages/ProgramForm.vue:30 frontend/src/pages/ProgramForm.vue:92
 #: frontend/src/pages/ProgramForm.vue:137
 msgid "Add"
-msgstr ""
+msgstr "Thêm"
 
 #: frontend/src/components/CourseOutline.vue:18
 #: frontend/src/components/CreateOutline.vue:18
@@ -198,7 +198,7 @@ msgstr ""
 
 #: frontend/src/components/Settings/Members.vue:88
 msgid "Add a new member"
-msgstr ""
+msgstr "Thêm thành viên mới"
 
 #: frontend/src/components/Modals/Question.vue:292
 #: frontend/src/pages/QuizForm.vue:209
@@ -279,11 +279,11 @@ msgstr ""
 #. Name of a role
 #: frontend/src/pages/Batches.vue:275 lms/lms/doctype/lms_badge/lms_badge.json
 msgid "All"
-msgstr ""
+msgstr "Tất cả"
 
 #: frontend/src/pages/Batches.vue:26
 msgid "All Batches"
-msgstr ""
+msgstr "Tất cả các lớp học"
 
 #: frontend/src/components/Quiz.vue:416
 msgid "All Correct"
@@ -327,7 +327,7 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:64
 msgid "Allow self enrollment"
-msgstr ""
+msgstr "Cho phép tự đăng ký"
 
 #: lms/lms/user.py:34
 msgid "Already Registered"
@@ -403,17 +403,17 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:231
 msgid "Appears when the batch URL is shared on socials"
-msgstr ""
+msgstr "Hiển thị khi chia sẻ liên kết lớp học lên mạng xã hội"
 
 #. Label of the apply_gst (Check) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
 msgid "Apply GST for India"
-msgstr ""
+msgstr "Áp dụng GST cho Ấn Độ"
 
 #. Label of the apply_rounding (Check) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
 msgid "Apply Rounding on Equivalent"
-msgstr ""
+msgstr "Áp dụng làm tròn cho giá trị tương đương"
 
 #: frontend/src/components/Modals/JobApplicationModal.vue:6
 msgid "Apply for this job"
@@ -708,7 +708,7 @@ msgstr ""
 #: lms/lms/doctype/lms_batch/lms_batch.json
 #: lms/templates/emails/batch_confirmation.html:26
 msgid "Batch Details"
-msgstr ""
+msgstr "Mô tả lớp học"
 
 #. Label of the batch_details_raw (HTML Editor) field in DocType 'LMS Batch'
 #: lms/lms/doctype/lms_batch/lms_batch.json
@@ -722,7 +722,7 @@ msgstr ""
 
 #: frontend/src/components/Modals/EmailTemplateModal.vue:28
 msgid "Batch Enrollment Confirmation"
-msgstr ""
+msgstr "Xác nhận ghi danh lớp học"
 
 #. Name of a role
 #: lms/lms/doctype/course_evaluator/course_evaluator.json
@@ -797,7 +797,7 @@ msgstr ""
 #: frontend/src/pages/Batches.vue:301 frontend/src/pages/Batches.vue:308
 #: lms/lms/doctype/lms_settings/lms_settings.json lms/www/lms.py:120
 msgid "Batches"
-msgstr ""
+msgstr "Lớp học"
 
 #. Label of the begin_date (Date) field in DocType 'Cohort'
 #: lms/lms/doctype/cohort/cohort.json
@@ -826,7 +826,7 @@ msgstr ""
 
 #: frontend/src/components/Modals/EditProfile.vue:75
 msgid "Bio"
-msgstr ""
+msgstr "Giới thiệu bản thân"
 
 #. Option for the 'Color' (Select) field in DocType 'LMS Course'
 #. Option for the 'Color' (Select) field in DocType 'LMS Lesson Note'
@@ -916,19 +916,19 @@ msgstr "Danh mục"
 
 #: frontend/src/components/Settings/Categories.vue:39
 msgid "Category Name"
-msgstr ""
+msgstr "Tên danh mục mới"
 
 #: frontend/src/components/Settings/Categories.vue:133
 msgid "Category added successfully"
-msgstr ""
+msgstr "Danh mục đã được thêm thành công"
 
 #: frontend/src/components/Settings/Categories.vue:193
 msgid "Category deleted successfully"
-msgstr ""
+msgstr "Danh mục đã được xóa thành công"
 
 #: frontend/src/components/Settings/Categories.vue:173
 msgid "Category updated successfully"
-msgstr ""
+msgstr "Danh mục đã được cập nhật thành công"
 
 #. Label of the certificate (Link) field in DocType 'LMS Enrollment'
 #. Label of a shortcut in the LMS Workspace
@@ -956,7 +956,7 @@ msgstr ""
 
 #: frontend/src/pages/ProfileCertificates.vue:4
 msgid "Certificates"
-msgstr ""
+msgstr "Chứng chỉ"
 
 #: frontend/src/components/Modals/BulkCertificates.vue:120
 msgid "Certificates generated successfully"
@@ -1086,7 +1086,7 @@ msgstr "Trắc nghiệm"
 msgid "Choose a color for the course card"
 msgstr "Chọn màu cho khóa học"
 
-#: frontend/src/components/Quiz.vue:1630
+#: frontend/src/components/Quiz.vue:1624
 msgid "Choose all answers that apply"
 msgstr "Chọn nhiều đáp án đúng"
 
@@ -1098,7 +1098,7 @@ msgstr "Chọn câu hỏi đã có"
 msgid "Choose an icon"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1631
+#: frontend/src/components/Quiz.vue:1625
 msgid "Choose one answer"
 msgstr ""
 
@@ -1316,7 +1316,7 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:148
 msgid "Configurations"
-msgstr ""
+msgstr "Cấu hình"
 
 #: frontend/src/components/UserDropdown.vue:180
 msgid "Confirm"
@@ -1375,8 +1375,7 @@ msgstr ""
 #: frontend/src/components/Modals/Question.vue:195
 #: frontend/src/components/Quiz.vue:188 frontend/src/components/Quiz.vue:211
 #: frontend/src/components/Quiz.vue:234 frontend/src/components/Quiz.vue:267
-#: frontend/src/components/Quiz.vue:545 frontend/src/components/Quiz.vue:557
-#: frontend/src/components/Quiz.vue:687
+#: frontend/src/components/Quiz.vue:557 frontend/src/components/Quiz.vue:687
 msgid "Correct"
 msgstr "Đúng"
 
@@ -1631,10 +1630,6 @@ msgstr "Tạo mới"
 msgid "Create Certificate"
 msgstr ""
 
-#: frontend/src/pages/LessonForm.vue:495
-msgid "Create Lesson"
-msgstr ""
-
 #: frontend/src/components/Controls/Link.vue:38
 #: frontend/src/components/Controls/MultiSelect.vue:66
 msgid "Create New"
@@ -1764,7 +1759,7 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:76
 msgid "Date and Time"
-msgstr ""
+msgstr "Thời gian"
 
 #: lms/templates/emails/live_class_reminder.html:13
 msgid "Date:"
@@ -1799,7 +1794,7 @@ msgstr ""
 #. Label of the default_currency (Link) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
 msgid "Default Currency"
-msgstr ""
+msgstr "Tiền tệ mặc định"
 
 #. Label of the degree_type (Data) field in DocType 'Education Detail'
 #: lms/lms/doctype/education_detail/education_detail.json
@@ -1883,7 +1878,7 @@ msgstr "Thông tin"
 
 #: frontend/src/pages/CourseForm.vue:171
 msgid "Disable Self Enrollment"
-msgstr "Dành cho lớp học(khóa học công công khai)"
+msgstr "Dành cho chương trình học(khóa học công công khai)"
 
 #. Label of the disable_self_learning (Check) field in DocType 'LMS Course'
 #: lms/lms/doctype/lms_course/lms_course.json
@@ -2000,13 +1995,9 @@ msgstr ""
 msgid "Edit Email Template"
 msgstr ""
 
-#: frontend/src/pages/LessonForm.vue:495
-msgid "Edit Lesson"
-msgstr ""
-
 #: frontend/src/pages/Profile.vue:72
 msgid "Edit Profile"
-msgstr ""
+msgstr "Chỉnh sửa thông tin"
 
 #: frontend/src/components/Modals/ZoomAccountModal.vue:6
 msgid "Edit Zoom Account"
@@ -2014,6 +2005,10 @@ msgstr ""
 
 #: frontend/src/pages/QuizForm.vue:208
 msgid "Edit the question"
+msgstr ""
+
+#: frontend/src/components/Modals/EditProfile.vue:4
+msgid "Edit your profile"
 msgstr ""
 
 #. Label of the education (Table) field in DocType 'User'
@@ -2048,7 +2043,7 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:161
 msgid "Email Template"
-msgstr ""
+msgstr "Mẫu email"
 
 #: frontend/src/components/Modals/EmailTemplateModal.vue:117
 msgid "Email Template created successfully"
@@ -2121,7 +2116,7 @@ msgstr ""
 #: frontend/src/pages/BatchForm.vue:89 lms/lms/doctype/cohort/cohort.json
 #: lms/lms/doctype/lms_batch/lms_batch.json
 msgid "End Date"
-msgstr ""
+msgstr "Ngày kết thúc"
 
 #. Label of the end_date (Date) field in DocType 'Education Detail'
 #: lms/lms/doctype/education_detail/education_detail.json
@@ -2145,7 +2140,7 @@ msgstr ""
 #: lms/lms/doctype/lms_certificate_request/lms_certificate_request.json
 #: lms/lms/doctype/scheduled_flow/scheduled_flow.json
 msgid "End Time"
-msgstr ""
+msgstr "Giờ kết thúc"
 
 #: frontend/src/components/LiveClass.vue:89
 msgid "Ended"
@@ -2247,7 +2242,7 @@ msgstr ""
 #: frontend/src/pages/BatchForm.vue:122
 #: lms/lms/doctype/lms_batch/lms_batch.json
 msgid "Evaluation End Date"
-msgstr ""
+msgstr "Ngày kết thúc đánh giá"
 
 #. Label of a Link in the LMS Workspace
 #: lms/lms/workspace/lms/lms.json
@@ -2427,7 +2422,7 @@ msgstr ""
 #: frontend/src/components/Modals/EditProfile.vue:59
 #: frontend/src/components/Settings/Members.vue:110
 msgid "First Name"
-msgstr ""
+msgstr "Tên"
 
 #. Option for the 'Time Preference' (Select) field in DocType 'User'
 #: lms/fixtures/custom_field.json
@@ -2603,7 +2598,7 @@ msgstr ""
 #: frontend/src/components/Modals/EditProfile.vue:69
 #: lms/fixtures/custom_field.json
 msgid "Headline"
-msgstr ""
+msgstr "Giới thiệu"
 
 #: lms/lms/widgets/HelloWorld.html:13
 msgid "Hello"
@@ -2756,7 +2751,7 @@ msgstr ""
 msgid "Image search powered by"
 msgstr ""
 
-#: lms/lms/doctype/lms_quiz/lms_quiz.py:691
+#: lms/lms/doctype/lms_quiz/lms_quiz.py:676
 msgid "Image: Corrupted Data Stream"
 msgstr ""
 
@@ -2788,8 +2783,7 @@ msgstr ""
 
 #: frontend/src/components/Quiz.vue:193 frontend/src/components/Quiz.vue:216
 #: frontend/src/components/Quiz.vue:239 frontend/src/components/Quiz.vue:276
-#: frontend/src/components/Quiz.vue:552 frontend/src/components/Quiz.vue:562
-#: frontend/src/components/Quiz.vue:692
+#: frontend/src/components/Quiz.vue:562 frontend/src/components/Quiz.vue:692
 msgid "Incorrect"
 msgstr "Sai"
 
@@ -3257,7 +3251,7 @@ msgstr ""
 
 #: frontend/src/components/Modals/EditProfile.vue:64
 msgid "Last Name"
-msgstr ""
+msgstr "Họ"
 
 #. Label of the launch_file (Code) field in DocType 'Course Chapter'
 #: lms/lms/doctype/course_chapter/course_chapter.json
@@ -3418,10 +3412,22 @@ msgstr ""
 msgid "Location Preference"
 msgstr ""
 
+#: frontend/src/components/UserDropdown.vue:211
+msgid "Log in"
+msgstr ""
+
+#: frontend/src/components/UserDropdown.vue:199
+msgid "Log out"
+msgstr ""
+
 #: frontend/src/components/NoPermission.vue:28
 #: frontend/src/components/QuizBlock.vue:9 frontend/src/pages/Batch.vue:196
 #: frontend/src/pages/Lesson.vue:58
 msgid "Login"
+msgstr "Đăng nhập"
+
+#: frontend/src/components/UserDropdown.vue:171
+msgid "Login to Frappe Cloud"
 msgstr ""
 
 #: frontend/src/components/UserDropdown.vue:174
@@ -3520,7 +3526,7 @@ msgstr "Số lần làm tối đa"
 #: frontend/src/pages/BatchForm.vue:194
 #: lms/lms/doctype/lms_batch/lms_batch.json
 msgid "Medium"
-msgstr ""
+msgstr "Hình thức"
 
 #. Label of the medium (Data) field in DocType 'User'
 #: lms/fixtures/custom_field.json
@@ -3676,7 +3682,7 @@ msgstr ""
 #. Group in LMS Batch Old's connections
 #: lms/lms/doctype/lms_batch_old/lms_batch_old.json
 msgid "Members"
-msgstr ""
+msgstr "Thành viên"
 
 #. Label of the membership (Select) field in DocType 'LMS Batch Old'
 #: lms/lms/doctype/lms_batch_old/lms_batch_old.json
@@ -3732,7 +3738,7 @@ msgstr "Mô tả Meta"
 #: lms/lms/doctype/lms_batch/lms_batch.json
 #: lms/lms/doctype/lms_settings/lms_settings.json
 msgid "Meta Image"
-msgstr ""
+msgstr "Thẻ hình ảnh"
 
 #. Label of the meta_keywords (Small Text) field in DocType 'LMS Settings'
 #: frontend/src/pages/BatchForm.vue:303 frontend/src/pages/CourseForm.vue:294
@@ -3825,6 +3831,10 @@ msgstr ""
 msgid "My Notes"
 msgstr "Ghi chú của tôi"
 
+#: frontend/src/components/UserDropdown.vue:133
+msgid "My Profile"
+msgstr ""
+
 #: frontend/src/pages/ProfileEvaluator.vue:4
 msgid "My availability"
 msgstr ""
@@ -3839,7 +3849,7 @@ msgstr ""
 
 #: frontend/src/components/Modals/EmailTemplateModal.vue:24
 msgid "Name"
-msgstr ""
+msgstr "Tên"
 
 #. Option for the 'Event' (Select) field in DocType 'LMS Badge'
 #: frontend/src/components/Settings/BadgeAssignments.vue:21
@@ -3864,15 +3874,15 @@ msgstr "Khóa học mới"
 
 #: frontend/src/components/Modals/EmailTemplateModal.vue:7
 msgid "New Email Template"
-msgstr ""
+msgstr "Mẫu email mới"
 
 #: frontend/src/pages/Programs.vue:90
 msgid "New Program"
-msgstr "Thêm lớp học"
+msgstr "Thêm chương trình mới"
 
 #: frontend/src/pages/ProgramForm.vue:133
 msgid "New Program Course"
-msgstr "Thêm khóa học vào lớp học"
+msgstr "Thêm khóa học vào chương trình"
 
 #: frontend/src/pages/ProgramForm.vue:134
 msgid "New Program Member"
@@ -3958,7 +3968,7 @@ msgstr ""
 
 #: frontend/src/pages/Programs.vue:81
 msgid "No courses in this program"
-msgstr ""
+msgstr "Hiện chưa có khóa nào trong chương trình này."
 
 #: lms/templates/courses_under_review.html:14
 msgid "No courses under review"
@@ -3970,7 +3980,7 @@ msgstr ""
 
 #: frontend/src/pages/ProfileAbout.vue:12
 msgid "No introduction"
-msgstr ""
+msgstr "Chưa có thông tin"
 
 #: frontend/src/components/LiveClass.vue:97
 msgid "No live classes scheduled"
@@ -4010,7 +4020,7 @@ msgstr ""
 
 #: frontend/src/components/EmptyState.vue:5 lms/templates/course_list.html:13
 msgid "No {0}"
-msgstr ""
+msgstr "Chưa có {0}"
 
 #: lms/lms/user.py:29
 msgid "Not Allowed"
@@ -4038,7 +4048,7 @@ msgstr ""
 
 #: frontend/src/components/NoPermission.vue:7 frontend/src/pages/Batch.vue:164
 msgid "Not Permitted"
-msgstr ""
+msgstr "Không có quyền truy cập"
 
 #: frontend/src/components/Assignment.vue:36
 #: frontend/src/components/Settings/BrandSettings.vue:10
@@ -4060,7 +4070,7 @@ msgstr "Ghi chú"
 
 #: frontend/src/pages/Notifications.vue:53
 msgid "Nothing to see here."
-msgstr ""
+msgstr "Chưa có thông tin nào ở đây."
 
 #. Label of the notifications (Check) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
@@ -4077,7 +4087,7 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:157
 msgid "Number of seats available"
-msgstr ""
+msgstr "Số thành viên có thể tham gia"
 
 #. Label of the sb_00 (Section Break) field in DocType 'Zoom Settings'
 #: lms/lms/doctype/zoom_settings/zoom_settings.json
@@ -4109,7 +4119,7 @@ msgstr ""
 
 #: frontend/src/pages/ProgramForm.vue:157
 msgid "Only courses for which self learning is disabled can be added to program."
-msgstr "Chỉ những khóa học riêng cho lớp học mới được thêm vào lớp học."
+msgstr "Chỉ những khóa học riêng cho chương trình mới được thêm vào chương trình."
 
 #: lms/templates/assignment.html:6
 msgid "Only files of type {0} will be accepted."
@@ -4237,7 +4247,7 @@ msgstr ""
 #: frontend/src/pages/BatchForm.vue:270
 #: lms/lms/doctype/lms_batch/lms_batch.json
 msgid "Paid Batch"
-msgstr ""
+msgstr "Lớp học trả phí"
 
 #. Label of the paid_certificate (Check) field in DocType 'LMS Course'
 #: frontend/src/pages/CourseForm.vue:251
@@ -4304,7 +4314,7 @@ msgstr "Chèn một đường dẫn video từ Youtube để giới thiệu khó
 #: lms/lms/doctype/lms_batch_enrollment/lms_batch_enrollment.json
 #: lms/lms/doctype/lms_enrollment/lms_enrollment.json
 msgid "Payment"
-msgstr ""
+msgstr "Thanh toán"
 
 #. Name of a DocType
 #: lms/lms/doctype/payment_country/payment_country.json
@@ -4320,7 +4330,7 @@ msgstr ""
 #. Label of the payment_gateway (Data) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
 msgid "Payment Gateway"
-msgstr ""
+msgstr "Cổng thanh toán"
 
 #. Label of the payment_id (Data) field in DocType 'LMS Payment'
 #: lms/lms/doctype/lms_payment/lms_payment.json
@@ -4382,6 +4392,10 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
+#: frontend/src/pages/Profile.vue:214
+msgid "People"
+msgstr ""
+
 #. Label of the percentage (Int) field in DocType 'LMS Quiz Submission'
 #: frontend/src/pages/QuizSubmission.vue:44
 #: frontend/src/pages/QuizSubmissionList.vue:102
@@ -4420,15 +4434,15 @@ msgstr ""
 msgid "Please add a zoom account to the batch to create live classes."
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1729
+#: frontend/src/components/Quiz.vue:1723
 msgid "Please answer all sub-questions in question {0}"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1404
+#: frontend/src/components/Quiz.vue:1398
 msgid "Please answer all {0} sub-questions. You have {1} unanswered questions remaining."
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1716 frontend/src/components/Quiz.vue:1721
+#: frontend/src/components/Quiz.vue:1710 frontend/src/components/Quiz.vue:1715
 msgid "Please answer question {0}"
 msgstr ""
 
@@ -4499,7 +4513,7 @@ msgstr ""
 
 #: frontend/src/components/NoPermission.vue:25 frontend/src/pages/Batch.vue:175
 msgid "Please login to access this page."
-msgstr ""
+msgstr "Vui lòng đăng nhập để truy cập"
 
 #: lms/lms/api.py:179
 msgid "Please login to continue with payment."
@@ -4538,7 +4552,7 @@ msgstr ""
 msgid "Please select a timezone."
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1388
+#: frontend/src/components/Quiz.vue:1382
 msgid "Please select an option"
 msgstr "Vui lòng chọn một đáp án"
 
@@ -4652,7 +4666,7 @@ msgstr ""
 #: frontend/src/pages/BatchForm.vue:265
 #: lms/lms/doctype/lms_batch/lms_batch.json
 msgid "Pricing"
-msgstr ""
+msgstr "Giá"
 
 #. Label of the pricing_tab (Tab Break) field in DocType 'LMS Course'
 #: frontend/src/pages/CourseForm.vue:235
@@ -4736,7 +4750,7 @@ msgstr ""
 #: frontend/src/pages/Programs.vue:206 frontend/src/pages/Programs.vue:212
 #: lms/www/lms.py:293
 msgid "Programs"
-msgstr "Lớp "
+msgstr "Chương trình"
 
 #. Label of the progress (Float) field in DocType 'LMS Enrollment'
 #. Label of the progress (Int) field in DocType 'LMS Program Member'
@@ -5193,6 +5207,7 @@ msgstr ""
 #: frontend/src/components/Controls/Code.vue:24
 #: frontend/src/components/Controls/CodeEditor.vue:25
 #: frontend/src/components/Modals/AssignmentForm.vue:59
+#: frontend/src/components/Modals/EditProfile.vue:8
 #: frontend/src/components/Modals/EmailTemplateModal.vue:12
 #: frontend/src/components/Modals/Event.vue:101
 #: frontend/src/components/Modals/Event.vue:129
@@ -5269,7 +5284,7 @@ msgstr ""
 #: frontend/src/pages/BatchForm.vue:154
 #: lms/lms/doctype/lms_batch/lms_batch.json
 msgid "Seat Count"
-msgstr ""
+msgstr "Số thành viên tối đa"
 
 #: frontend/src/components/BatchCard.vue:18
 #: frontend/src/components/BatchOverlay.vue:17
@@ -5347,6 +5362,7 @@ msgstr ""
 
 #: frontend/src/components/AppSidebar.vue:591
 #: frontend/src/components/Settings/Settings.vue:7
+#: frontend/src/components/UserDropdown.vue:161
 #: frontend/src/pages/BatchForm.vue:53 frontend/src/pages/CourseForm.vue:142
 #: frontend/src/pages/ProfileRoles.vue:4 frontend/src/pages/QuizForm.vue:95
 msgid "Settings"
@@ -5358,7 +5374,7 @@ msgstr ""
 
 #: frontend/src/pages/BatchForm.vue:42
 msgid "Short Description"
-msgstr ""
+msgstr "Mô tả ngắn gọn"
 
 #. Label of the short_introduction (Small Text) field in DocType 'LMS Course'
 #: frontend/src/pages/CourseForm.vue:185
@@ -5368,7 +5384,7 @@ msgstr "Mô tả khóa học"
 
 #: frontend/src/pages/BatchForm.vue:45
 msgid "Short description of the batch"
-msgstr ""
+msgstr "Thông tin lớp học"
 
 #. Label of the show_answer (Check) field in DocType 'LMS Assignment'
 #: lms/lms/doctype/lms_assignment/lms_assignment.json
@@ -5394,7 +5410,7 @@ msgstr ""
 #. Label of the show_usd_equivalent (Check) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
 msgid "Show USD Equivalent"
-msgstr ""
+msgstr "Hiển thị giá trị tương đương USD"
 
 #. Label of the show_day_view (Check) field in DocType 'LMS Settings'
 #: lms/lms/doctype/lms_settings/lms_settings.json
@@ -5525,11 +5541,11 @@ msgstr "Bắt Đầu"
 #: lms/lms/doctype/lms_batch/lms_batch.json
 #: lms/lms/doctype/lms_batch_old/lms_batch_old.json
 msgid "Start Date"
-msgstr ""
+msgstr "Ngày bắt đâu:"
 
 #: lms/templates/emails/batch_start_reminder.html:13
 msgid "Start Date:"
-msgstr ""
+msgstr "Ngày bắt đầu:"
 
 #: frontend/src/components/CourseCardOverlay.vue:76
 #: frontend/src/pages/Lesson.vue:44 frontend/src/pages/SCORMChapter.vue:28
@@ -5554,7 +5570,7 @@ msgstr ""
 #: lms/lms/doctype/lms_certificate_request/lms_certificate_request.json
 #: lms/lms/doctype/scheduled_flow/scheduled_flow.json
 msgid "Start Time"
-msgstr ""
+msgstr "Giờ kết thúc"
 
 #: lms/lms/doctype/course_evaluator/course_evaluator.py:36
 msgid "Start Time cannot be greater than End Time"
@@ -5896,7 +5912,7 @@ msgstr ""
 
 #: frontend/src/components/EmptyState.vue:11
 msgid "There are no {0} currently. Keep an eye out, fresh learning experiences are on the way!"
-msgstr ""
+msgstr "Hiện chưa có {0}. Nội dung mới sẽ sớm được cập nhật!"
 
 #: lms/templates/course_list.html:14
 msgid "There are no {0} on this site."
@@ -6118,6 +6134,10 @@ msgstr ""
 msgid "To join this batch, please contact the Administrator."
 msgstr ""
 
+#: frontend/src/components/UserDropdown.vue:143
+msgid "Toggle Theme"
+msgstr ""
+
 #: lms/lms/user.py:41
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr ""
@@ -6180,7 +6200,7 @@ msgstr ""
 msgid "Type '/' for commands or select text to format"
 msgstr ""
 
-#: frontend/src/components/Quiz.vue:1632
+#: frontend/src/components/Quiz.vue:1626
 msgid "Type your answer"
 msgstr "Nhập câu trả lời của bạn"
 
@@ -6271,7 +6291,7 @@ msgstr ""
 #: frontend/src/components/Settings/PaymentSettings.vue:27
 #: frontend/src/components/Settings/SettingDetails.vue:23
 msgid "Update"
-msgstr ""
+msgstr "Cập nhật"
 
 #: lms/templates/emails/community_course_membership.html:11
 msgid "Update Password"
@@ -6280,13 +6300,18 @@ msgstr ""
 #: frontend/src/components/Controls/Uploader.vue:20
 #: frontend/src/pages/BatchForm.vue:227 frontend/src/pages/CourseForm.vue:100
 msgid "Upload"
-msgstr ""
+msgstr "Tải lên"
 
 #: frontend/src/components/Assignment.vue:81
 msgid "Upload File"
 msgstr ""
 
+#: frontend/src/components/Modals/EditProfile.vue:29
+msgid "Upload a profile image"
+msgstr ""
+
 #: frontend/src/components/Assignment.vue:80
+#: frontend/src/components/Modals/EditProfile.vue:28
 msgid "Uploading {0}%"
 msgstr ""
 
@@ -6720,7 +6745,7 @@ msgstr ""
 #: lms/lms/doctype/lms_batch/lms_batch.json
 #: lms/lms/doctype/lms_live_class/lms_live_class.json
 msgid "Zoom Account"
-msgstr ""
+msgstr "Tài khoản Zoom(có thể bỏ qua)"
 
 #: frontend/src/components/Modals/ZoomAccountModal.vue:164
 msgid "Zoom Account created successfully"

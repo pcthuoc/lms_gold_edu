@@ -1,14 +1,14 @@
 <template>
 	<Dialog
-		:options="{
-			title: 'Edit your profile',
+		   :options="{
+			   title: __('Edit your profile'),
 			size: 'xl',
 			actions: [
-				{
-					label: 'Save',
-					variant: 'solid',
-					onClick: (close) => saveProfile(close),
-				},
+				   {
+					   label: __('Save'),
+					   variant: 'solid',
+					   onClick: (close) => saveProfile(close),
+				   },
 			],
 		}"
 	>
@@ -23,11 +23,11 @@
 					<template v-slot="{ file, progress, uploading, openFileSelector }">
 						<div class="mb-4">
 							<Button @click="openFileSelector" :loading="uploading">
-								{{
-									uploading
-										? `Uploading ${progress}%`
-										: 'Upload a profile image'
-								}}
+								   {{
+									   uploading
+										   ? __('Uploading {0}%', progress)
+										   : __('Upload a profile image')
+								   }}
 							</Button>
 						</div>
 					</template>
