@@ -75,8 +75,7 @@
    "fieldname": "end_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "End Date",
-   "reqd": 1
+   "label": "End Date"
   },
   {
    "fieldname": "column_break_4",
@@ -128,14 +127,12 @@
    "fieldname": "start_time",
    "fieldtype": "Time",
    "in_list_view": 1,
-   "label": "Start Time",
-   "reqd": 1
+   "label": "Start Time"
   },
   {
    "fieldname": "end_time",
    "fieldtype": "Time",
-   "label": "End Time",
-   "reqd": 1
+   "label": "End Time"
   },
   {
    "fieldname": "assessment_tab",
@@ -313,8 +310,7 @@
   {
    "fieldname": "timezone",
    "fieldtype": "Data",
-   "label": "Timezone",
-   "reqd": 1
+   "label": "Timezone"
   },
   {
    "fieldname": "instructors",

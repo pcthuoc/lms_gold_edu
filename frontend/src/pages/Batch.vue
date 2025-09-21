@@ -60,28 +60,28 @@
 					</template>
 					<template #tab-panel="{ tab }">
 						<div class="pt-5 px-5 pb-10">
-							<div v-if="tab.label == 'Courses'">
+							<div v-if="tab.key == 'Courses'">
 								<BatchCourses :batch="batch.data.name" />
 							</div>
-							<div v-else-if="tab.label == 'Dashboard' && isStudent">
+							<div v-else-if="tab.key == 'Dashboard' && isStudent">
 								<BatchDashboard :batch="batch" :isStudent="isStudent" />
 							</div>
-							<div v-else-if="tab.label == 'Dashboard'">
+							<div v-else-if="tab.key == 'Dashboard'">
 								<BatchStudents :batch="batch" />
 							</div>
-							<div v-else-if="tab.label == 'Classes'">
+							<div v-else-if="tab.key == 'Classes'">
 								<LiveClass
 									:batch="batch.data.name"
 									:zoomAccount="batch.data.zoom_account"
 								/>
 							</div>
-							<div v-else-if="tab.label == 'Assessments'">
+							<div v-else-if="tab.key == 'Assessments'">
 								<Assessments :batch="batch.data.name" />
 							</div>
-							<div v-else-if="tab.label == 'Announcements'">
+							<div v-else-if="tab.key == 'Announcements'">
 								<Announcements :batch="batch.data.name" />
 							</div>
-							<div v-else-if="tab.label == 'Discussions'">
+							<div v-else-if="tab.key == 'Discussions'">
 								<Discussions
 									doctype="LMS Batch"
 									:docname="batch.data.name"
@@ -141,12 +141,15 @@
 						</span>
 					</div>
 				</div>
+				<!-- Feedback section hidden -->
+				<!--
 				<div v-if="dayjs().isSameOrAfter(dayjs(batch.data.start_date))">
 					<div class="text-ink-gray-7 font-semibold mb-2">
 						{{ __('Feedback') }}
 					</div>
 					<BatchFeedback :batch="batch.data?.name" />
 				</div>
+				-->
 			</div>
 			<AnnouncementModal
 				v-model="showAnnouncementModal"
@@ -241,7 +244,7 @@ import AnnouncementModal from '@/components/Modals/AnnouncementModal.vue'
 import Discussions from '@/components/Discussions.vue'
 import DateRange from '@/components/Common/DateRange.vue'
 import BulkCertificates from '@/components/Modals/BulkCertificates.vue'
-import BatchFeedback from '@/components/BatchFeedback.vue'
+// import BatchFeedback from '@/components/BatchFeedback.vue' // Hidden
 import dayjs from 'dayjs/esm'
 
 const user = inject('$user')
@@ -256,34 +259,40 @@ const readOnlyMode = window.read_only_mode
 const tabs = computed(() => {
 	let batchTabs = []
 	batchTabs.push({
-		label: 'Dashboard',
+		key: 'Dashboard',
+		label: __('Dashboard'),
 		icon: LayoutDashboard,
 	})
 
 	batchTabs.push({
-		label: 'Courses',
+		key: 'Courses',
+		label: __('Courses'),
 		icon: BookOpen,
 	})
 
 	batchTabs.push({
-		label: 'Classes',
+		key: 'Classes',
+		label: __('Classes'),
 		icon: Laptop,
 	})
 
 	if (user.data?.is_moderator) {
 		batchTabs.push({
-			label: 'Assessments',
+			key: 'Assessments',
+			label: __('Assessments'),
 			icon: BookOpenCheck,
 		})
 	}
 
 	batchTabs.push({
-		label: 'Announcements',
+		key: 'Announcements',
+		label: __('Announcements'),
 		icon: Mail,
 	})
 
 	batchTabs.push({
-		label: 'Discussions',
+		key: 'Discussions',
+		label: __('Discussions'),
 		icon: MessageCircle,
 	})
 	return batchTabs
@@ -300,7 +309,7 @@ onMounted(() => {
 	const hash = route.hash
 	if (hash) {
 		tabs.value.forEach((tab, index) => {
-			if (tab.label?.toLowerCase() === hash.replace('#', '')) {
+			if (tab.key?.toLowerCase() === hash.replace('#', '')) {
 				tabIndex.value = index
 			}
 		})
@@ -317,10 +326,10 @@ const batch = createResource({
 })
 
 const breadcrumbs = computed(() => {
-	let crumbs = [{ label: 'Batches', route: { name: 'Batches' } }]
+	let crumbs = [{ label: __('Batches'), route: { name: 'Batches' } }]
 	if (!isStudent.value) {
 		crumbs.push({
-			label: 'Details',
+			label: __('Details'),
 			route: {
 				name: 'BatchDetail',
 				params: {
@@ -354,8 +363,8 @@ const openAnnouncementModal = () => {
 
 watch(tabIndex, () => {
 	const tab = tabs.value[tabIndex.value]
-	if (tab.label != route.hash.replace('#', '')) {
-		router.push({ ...route, hash: `#${tab.label.toLowerCase()}` })
+	if (tab.key != route.hash.replace('#', '')) {
+		router.push({ ...route, hash: `#${tab.key.toLowerCase()}` })
 	}
 })
 

@@ -64,7 +64,7 @@ export default defineConfig({
 	//     allowedHosts: ['ps', 'fs'],
 	//     proxy: {
 	//       '/api': {
-	//         target: 'http://128.199.244.163:8000',
+	//         target: ' http://192.168.170.134:8000',
 	//         changeOrigin: true,
 	//         secure: false,
 	//       }

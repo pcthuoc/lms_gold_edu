@@ -39,7 +39,7 @@ class LMSBatch(Document):
 			self.name = generate_slug(self.title, "LMS Batch")
 
 	def validate_batch_end_date(self):
-		if self.end_date < self.start_date:
+		if self.end_date and self.end_date < self.start_date:
 			frappe.throw(_("Batch end date cannot be before the batch start date"))
 
 	def validate_batch_time(self):
@@ -112,21 +112,22 @@ class LMSBatch(Document):
 						)
 					)
 
-				if get_time(schedule.start_time) < get_time(self.start_time) or get_time(
-					schedule.start_time
-				) > get_time(self.end_time):
-					frappe.throw(
-						_("Row #{0} Start time cannot be outside the batch duration.").format(schedule.idx)
-					)
+				if self.start_time and self.end_time:
+					if get_time(schedule.start_time) < get_time(self.start_time) or get_time(
+						schedule.start_time
+					) > get_time(self.end_time):
+						frappe.throw(
+							_("Row #{0} Start time cannot be outside the batch duration.").format(schedule.idx)
+						)
 
-				if get_time(schedule.end_time) < get_time(self.start_time) or get_time(
-					schedule.end_time
-				) > get_time(self.end_time):
-					frappe.throw(
-						_("Row #{0} End time cannot be outside the batch duration.").format(schedule.idx)
-					)
+					if get_time(schedule.end_time) < get_time(self.start_time) or get_time(
+						schedule.end_time
+					) > get_time(self.end_time):
+						frappe.throw(
+							_("Row #{0} End time cannot be outside the batch duration.").format(schedule.idx)
+						)
 
-			if schedule.date < self.start_date or schedule.date > self.end_date:
+			if schedule.date and self.end_date and (schedule.date < self.start_date or schedule.date > self.end_date):
 				frappe.throw(_("Row #{0} Date cannot be outside the batch duration.").format(schedule.idx))
 
 	def on_payment_authorized(self, payment_status):

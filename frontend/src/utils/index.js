@@ -439,12 +439,34 @@ export function getFormattedDateRange(
 	endDate,
 	format = 'DD MMM YYYY'
 ) {
-	if (startDate === endDate) {
-		return dayjs(startDate).format(format)
+	// Handle null/undefined dates
+	if (!startDate && !endDate) {
+		return __('No Date Set')
 	}
-	return `${dayjs(startDate).format(format)} - ${dayjs(endDate).format(
-		format
-	)}`
+	
+	if (!startDate) {
+		const endFormatted = dayjs(endDate).format(format)
+		return endFormatted === 'Invalid Date' ? __('Invalid Date') : `- ${endFormatted}`
+	}
+	
+	if (!endDate) {
+		const startFormatted = dayjs(startDate).format(format)
+		return startFormatted === 'Invalid Date' ? __('Invalid Date') : startFormatted
+	}
+	
+	const startFormatted = dayjs(startDate).format(format)
+	const endFormatted = dayjs(endDate).format(format)
+	
+	// Check for invalid dates
+	if (startFormatted === 'Invalid Date' || endFormatted === 'Invalid Date') {
+		return __('Invalid Date')
+	}
+	
+	if (startDate === endDate) {
+		return startFormatted
+	}
+	
+	return `${startFormatted} - ${endFormatted}`
 }
 
 export function getLineStartPosition(string, position) {

@@ -33,6 +33,7 @@
 					:buttons="batchTabs"
 					v-model="currentTab"
 					class="w-fit"
+					@change="onTabChange"
 				/>
 				<div class="grid grid-cols-2 gap-2">
 					<FormControl
@@ -112,7 +113,16 @@ const title = ref('')
 const certification = ref(false)
 const filters = ref({})
 const is_student = computed(() => user.data?.is_student)
-const currentTab = ref(is_student.value ? 'All' : 'Upcoming')
+const currentTab = ref('All') // will be updated when user loads
+
+// Set default tab based on user role when user data is available
+watch(user, (userData) => {
+	if (userData.data && userData.data.is_student) {
+		currentTab.value = 'Enrolled'
+	} else if (userData.data) {
+		currentTab.value = 'Upcoming' 
+	}
+}, { immediate: true })
 const orderBy = ref('start_date')
 const readOnlyMode = window.read_only_mode
 
@@ -137,7 +147,7 @@ const setFiltersFromQuery = () => {
 const batches = createListResource({
 	doctype: 'LMS Batch',
 	url: 'lms.lms.utils.get_batches',
-	cache: ['batches', user.data?.name],
+	// cache: ['batches', user.data?.name, currentTab.value], // Disable cache to fix tab switching
 	pageLength: pageLength.value,
 	start: start.value,
 	onSuccess(data) {
@@ -195,37 +205,43 @@ const updateCertificationFilter = () => {
 
 const updateTabFilter = () => {
 	orderBy.value = 'start_date'
+	
+	// Clear all tab-related filters first
+	delete filters.value['enrolled']
+	delete filters.value['published']
+	delete filters.value['start_date']
+	
 	if (!user.data) {
 		return
 	}
-	if (currentTab.value == 'Enrolled' && is_student.value) {
-		filters.value['enrolled'] = 1
-		delete filters.value['start_date']
-		delete filters.value['published']
-		orderBy.value = 'start_date desc'
-	} else if (is_student.value) {
-		delete filters.value['enrolled']
+	
+	// Handle student tabs
+	if (is_student.value) {
+		if (currentTab.value === 'Enrolled') {
+			filters.value['enrolled'] = 1
+			orderBy.value = 'start_date desc'
+		} else if (currentTab.value === 'All') {
+			filters.value['published'] = 1
+		}
 	} else {
-		delete filters.value['start_date']
-		delete filters.value['published']
+		// Handle instructor/moderator tabs
 		orderBy.value = 'start_date desc'
 		if (currentTab.value == 'Upcoming') {
-			filters.value['start_date'] = ['>=', dayjs().format('YYYY-MM-DD')]
 			filters.value['published'] = 1
 			orderBy.value = 'start_date'
 		} else if (currentTab.value == 'Archived') {
-			filters.value['start_date'] = ['<=', dayjs().format('YYYY-MM-DD')]
+			filters.value['published'] = 1
 		} else if (currentTab.value == 'Unpublished') {
 			filters.value['published'] = 0
+		} else if (currentTab.value === 'All') {
+			// For instructors, All tab shows all batches regardless of published status
 		}
 	}
 }
 
 const updateStudentFilter = () => {
-	if (!user.data || (is_student.value && currentTab.value != 'Enrolled')) {
-		filters.value['start_date'] = ['>=', dayjs().format('YYYY-MM-DD')]
-		filters.value['published'] = 1
-	}
+	// This function is now handled by updateTabFilter to avoid conflicts
+	// Keep it empty to avoid breaking the call chain
 }
 
 const setQueryParams = () => {
@@ -252,6 +268,11 @@ const setQueryParams = () => {
 	history.replaceState({}, '', `${location.pathname}${queryString}`)
 }
 
+const onTabChange = (newTab) => {
+	currentTab.value = newTab
+	updateBatches()
+}
+
 const updateCategories = (data) => {
 	data.forEach((batch) => {
 		if (
@@ -266,6 +287,13 @@ const updateCategories = (data) => {
 }
 
 watch(currentTab, () => {
+	// Force clear any cached data
+	batches.data = null
+	batches.list.data = null
+	// Clear the cache completely
+	if (batches.cache) {
+		batches.cache.clear()
+	}
 	updateBatches()
 })
 
@@ -273,6 +301,7 @@ const batchTabs = computed(() => {
 	let tabs = [
 		{
 			label: __('All'),
+			value: 'All',
 		},
 	]
 
@@ -281,11 +310,11 @@ const batchTabs = computed(() => {
 		user.data?.is_instructor ||
 		user.data?.is_evaluator
 	) {
-		tabs.push({ label: __('Upcoming') })
-		tabs.push({ label: __('Archived') })
-		tabs.push({ label: __('Unpublished') })
+		tabs.push({ label: __('Upcoming'), value: 'Upcoming' })
+		tabs.push({ label: __('Archived'), value: 'Archived' })
+		tabs.push({ label: __('Unpublished'), value: 'Unpublished' })
 	} else if (user.data) {
-		tabs.push({ label: __('Enrolled') })
+		tabs.push({ label: __('Enrolled'), value: 'Enrolled' })
 	}
 	return tabs
 })

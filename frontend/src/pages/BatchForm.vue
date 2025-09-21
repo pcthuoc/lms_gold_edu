@@ -89,7 +89,6 @@
 							:label="__('End Date')"
 							type="date"
 							class="mb-4"
-							:required="true"
 						/>
 					</div>
 					<div class="space-y-5">
@@ -98,14 +97,12 @@
 							:label="__('Start Time')"
 							type="time"
 							class="mb-4"
-							:required="true"
 						/>
 						<FormControl
 							v-model="batch.end_time"
 							:label="__('End Time')"
 							type="time"
 							class="mb-4"
-							:required="true"
 						/>
 					</div>
 					<div class="space-y-5">
@@ -115,7 +112,6 @@
 							type="text"
 							:placeholder="__('Example: IST (+5:30)')"
 							class="mb-4"
-							:required="true"
 						/>
 						<FormControl
 							v-model="batch.evaluation_end_date"
@@ -451,9 +447,13 @@ const batchDetail = createResource({
 					instructors.value.push(instructor.instructor)
 				})
 			} else if (['start_time', 'end_time'].includes(key)) {
-				let [hours, minutes, seconds] = data[key].split(':')
-				hours = hours.length == 1 ? '0' + hours : hours
-				batch[key] = `${hours}:${minutes}`
+				if (data[key]) {
+					let [hours, minutes, seconds] = data[key].split(':')
+					hours = hours.length == 1 ? '0' + hours : hours
+					batch[key] = `${hours}:${minutes}`
+				} else {
+					batch[key] = ''
+				}
 			} else if (Object.hasOwn(batch, key)) batch[key] = data[key]
 		})
 		let checkboxes = [
@@ -501,6 +501,28 @@ const imageResource = createResource({
 })
 
 const saveBatch = () => {
+	// Validate required fields
+	if (!batch.title?.trim()) {
+		toast.error('Title is required')
+		return
+	}
+	if (!batch.description?.trim()) {
+		toast.error('Description is required')
+		return
+	}
+	if (!batch.start_date) {
+		toast.error('Start Date is required')
+		return
+	}
+	if (!batch.batch_details?.trim()) {
+		toast.error('Batch Details is required')
+		return
+	}
+	if (!instructors.value?.length) {
+		toast.error('At least one instructor is required')
+		return
+	}
+
 	if (batchDetail.data) {
 		editBatchDetails()
 	} else {

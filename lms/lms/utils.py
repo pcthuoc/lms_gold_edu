@@ -1354,14 +1354,8 @@ def get_batch_details(batch):
 	)
 
 	batch_details.instructors = get_instructors("LMS Batch", batch)
-	batch_details.accept_enrollments = batch_details.start_date > getdate()
-
-	if (
-		not batch_details.accept_enrollments
-		and batch_details.start_date == getdate()
-		and get_time_str(batch_details.start_time) > nowtime()
-	):
-		batch_details.accept_enrollments = True
+	# Allow enrollments anytime for self-paced learning
+	batch_details.accept_enrollments = True
 
 	batch_details.courses = frappe.get_all(
 		"Batch Course", filters={"parent": batch}, fields=["course", "title", "evaluator"]
@@ -2050,25 +2044,13 @@ def get_batches(filters=None, start=0, order_by="start_date"):
 
 	batches = filter_batches_based_on_start_time(batches, filters)
 	batches = get_batch_card_details(batches)
+
 	return batches
 
 
 def filter_batches_based_on_start_time(batches, filters):
-	batchType = get_batch_type(filters)
-	if batchType == "upcoming":
-		batches_to_remove = [
-			batch
-			for batch in batches
-			if getdate(batch.start_date) == getdate() and get_time_str(batch.start_time) < nowtime()
-		]
-		batches = [batch for batch in batches if batch not in batches_to_remove]
-	elif batchType == "archived":
-		batches_to_remove = [
-			batch
-			for batch in batches
-			if getdate(batch.start_date) == getdate() and get_time_str(batch.start_time) >= nowtime()
-		]
-		batches = [batch for batch in batches if batch not in batches_to_remove]
+	# For self-paced learning, don't filter based on start_time
+	# Just return all batches as-is
 	return batches
 
 
